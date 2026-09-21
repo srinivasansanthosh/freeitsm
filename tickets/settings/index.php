@@ -800,17 +800,17 @@ $translationNamespaces = ['common', 'tickets'];
 
             <div style="display: flex; flex-direction: column; gap: 14px; max-width: 720px;">
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-                    <input type="radio" name="chkClosureMode" value="warn" style="margin-top: 3px;"<?php echo $checklistClosureMode === 'warn' ? ' checked' : ''; ?>>
+                    <input type="radio" name="chkClosureMode" value="per_template" style="margin-top: 3px;"<?php echo $checklistClosureMode !== 'block_all' ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.warn_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.warn_desc')); ?></div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_title')); ?></div>
+                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.per_template_desc')); ?></div>
                     </div>
                 </label>
                 <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
-                    <input type="radio" name="chkClosureMode" value="block" style="margin-top: 3px;"<?php echo $checklistClosureMode === 'block' ? ' checked' : ''; ?>>
+                    <input type="radio" name="chkClosureMode" value="block_all" style="margin-top: 3px;"<?php echo $checklistClosureMode === 'block_all' ? ' checked' : ''; ?>>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_title')); ?></div>
-                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_desc')); ?></div>
+                        <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_title')); ?></div>
+                        <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.block_all_desc')); ?></div>
                     </div>
                 </label>
             </div>

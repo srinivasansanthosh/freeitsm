@@ -10,6 +10,12 @@
  */
 
 return [
+    'editor' => [
+        'closure_mode'      => 'Closure gate',
+        'closure_mode_desc' => 'How outstanding mandatory steps behave when a ticket moves to a closed status.',
+        'closure_warn'      => 'Standard (Warn & record override)',
+        'closure_block'     => 'Critical (Block closure until complete)',
+    ],
     'nav' => [
         'templates' => 'Templates',
         'settings'  => 'Settings',

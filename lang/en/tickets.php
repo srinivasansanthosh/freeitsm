@@ -312,6 +312,10 @@ return [
         'close_with_mandatory_title'   => 'Close with steps outstanding?',
         'close_with_mandatory'         => 'This ticket has {count} mandatory SOP step(s) still outstanding. Closing it now records which steps were skipped, and who skipped them, in the ticket notes.',
         'close_anyway'                 => 'Close anyway',
+        'blocked_title'                => 'Mandatory steps required',
+        'blocked_message'              => 'This ticket cannot be closed until mandatory SOP steps are complete:',
+        'view_checklist'               => 'View checklist',
+        'mandatory_for_closure'        => 'Mandatory for closure',
     ],
 
     // Closing a ticket with mandatory fields empty (Tickets → Settings →
@@ -775,7 +779,7 @@ return [
         // some are more descriptive — kept separate so translators can pick
         // different phrasings where natural.
         'headings' => [
-            'checklists'       => 'Closing with steps outstanding',
+            'checklists'       => 'Closing a ticket with steps outstanding',
             'mandatory_fields' => 'Closing with fields empty',
             'departments'      => 'Departments',
             'teams'            => 'Teams',
@@ -1440,11 +1444,11 @@ return [
         // skipped steps are written to the ticket notes in BOTH cases. Only the
         // second option actually prevents the close.
         'checklists' => [
-            'warn_title'       => 'Warn, and record it',
-            'warn_desc'        => 'The analyst is told which mandatory steps are outstanding and can close anyway. Recommended: a step that has become impossible never traps the ticket.',
-            'block_title'      => 'Refuse the close',
-            'block_desc'       => 'The ticket cannot reach a closed status until every mandatory step is ticked. Choose this where an external standard requires it.',
-            'always_recorded'  => 'Either way, closing with steps outstanding writes an internal note naming the skipped steps, who closed it and through which interface. The setting decides whether it is allowed, never whether it is logged.',
+            'per_template_title' => 'Follow setting in each checklist template (Recommended)',
+            'per_template_desc'  => 'Each SOP template decides its own gate: warn analysts on standard procedures, or block closure on critical ones.',
+            'block_all_title'    => 'Block all tickets with outstanding steps',
+            'block_all_desc'     => 'Master override: no ticket can reach a closed status until every mandatory checklist step is ticked, regardless of the template setting.',
+            'always_recorded'    => 'Closing with steps outstanding always writes an internal note naming the skipped steps and who closed it.',
         ],
 
         // Mandatory fields at closure. 🔴 TRANSLATORS: the first two options are

@@ -4470,6 +4470,31 @@ async function assignStatus() {
     if (closing && typeof getIncompleteMandatorySteps === "function") {
         const pendingMandatory = getIncompleteMandatorySteps();
         if (pendingMandatory.length > 0) {
+            const blocking = pendingMandatory.filter(m => m.closure_mode === 'block');
+            if (blocking.length > 0) {
+                const grouped = {};
+                blocking.forEach(m => {
+                    const cName = m.checklist || t('tickets.checklists.default_name');
+                    (grouped[cName] = grouped[cName] || []).push(m.step);
+                });
+                const stepList = Object.entries(grouped)
+                    .map(([cName, steps]) => cName + "\n" + steps.map(s => "    • " + s).join("\n"))
+                    .join("\n\n");
+
+                await showConfirm({
+                    title: t('tickets.checklists.blocked_title') || 'Mandatory steps required',
+                    message: (t('tickets.checklists.blocked_message') || 'This ticket cannot be closed until mandatory SOP steps are complete:') + "\n\n" + stepList,
+                    okLabel: t('tickets.checklists.view_checklist') || 'View checklist',
+                    okClass: 'primary',
+                    cancelLabel: t('common.close') || 'Close'
+                });
+                select.value = oldValue;
+                if (typeof openChecklistModal === "function") {
+                    openChecklistModal(currentEmail ? currentEmail.ticket_id : null);
+                }
+                return;
+            }
+
             const grouped = {};
             pendingMandatory.forEach(m => {
                 const cName = m.checklist || t('tickets.checklists.default_name');
@@ -4486,7 +4511,7 @@ async function assignStatus() {
                 okLabel: t('tickets.checklists.close_anyway'), okClass: 'danger'
             });
             if (!ok) {
-                select.value = oldValue;   // or the dropdown shows a status never applied
+                select.value = oldValue;
                 if (typeof openChecklistModal === "function") {
                     openChecklistModal(currentEmail ? currentEmail.ticket_id : null);
                 }

@@ -40,6 +40,7 @@ if ($action === 'save') {
     $title = trim($input['title'] ?? '');
     $category = trim($input['category'] ?? 'General');
     $scope = in_array($input['scope'] ?? '', ['ticket', 'task', 'both']) ? $input['scope'] : 'both';
+    $closureMode = (($input['closure_mode'] ?? '') === 'block') ? 'block' : 'warn';
     $description = trim($input['description'] ?? '');
         $keywords = trim($input['keywords'] ?? '');
     $items = is_array($input['items'] ?? null) ? $input['items'] : [];
@@ -50,11 +51,11 @@ if ($action === 'save') {
     }
 
     if ($id > 0) {
-        $stmt = $conn->prepare("UPDATE checklist_templates SET title = ?, category = ?, scope = ?, description = ?, keywords = ? WHERE id = ?");
-        $stmt->execute([$title, $category, $scope, $description, $keywords, $id]);
+        $stmt = $conn->prepare("UPDATE checklist_templates SET title = ?, category = ?, scope = ?, closure_mode = ?, description = ?, keywords = ? WHERE id = ?");
+        $stmt->execute([$title, $category, $scope, $closureMode, $description, $keywords, $id]);
     } else {
-        $stmt = $conn->prepare("INSERT INTO checklist_templates (title, category, scope, description, keywords, created_by_id) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$title, $category, $scope, $description, $keywords, $analystId]);
+        $stmt = $conn->prepare("INSERT INTO checklist_templates (title, category, scope, closure_mode, description, keywords, created_by_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $category, $scope, $closureMode, $description, $keywords, $analystId]);
         $id = (int)$conn->lastInsertId();
     }
 

@@ -179,7 +179,14 @@ foreach ($templates as $t) {
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                                 <h3 style="font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #0f172a);"><?php echo htmlspecialchars($t['title']); ?></h3>
-                                <span class="chk-pill <?php echo $badgeClass; ?>"><?php echo $badgeLabel; ?></span>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <?php if (($t['closure_mode'] ?? 'inherit') === 'block'): ?>
+                                        <span title="<?php echo htmlspecialchars(t('checklists.editor.closure_block') ?: 'Block closure until complete'); ?>" style="display: inline-flex; color: #dc2626;" aria-label="Block closure until complete">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                        </span>
+                                    <?php endif; ?>
+                                    <span class="chk-pill <?php echo $badgeClass; ?>"><?php echo $badgeLabel; ?></span>
+                                </div>
                             </div>
 
                             <div style="margin-bottom: 10px;">

@@ -178,8 +178,11 @@ const SETTING_TICKET_CHECKLIST_CLOSURE = 'ticket_checklist_closure_mode';
 /** 'warn' (default) or 'block' — how closure with outstanding mandatory steps behaves. */
 function ticketChecklistClosureMode(PDO $conn, ?int $tenantId): string
 {
-    $v = tenantSetting($conn, $tenantId, SETTING_TICKET_CHECKLIST_CLOSURE, 'warn');
-    return $v === 'block' ? 'block' : 'warn';
+    $v = tenantSetting($conn, $tenantId, SETTING_TICKET_CHECKLIST_CLOSURE, 'per_template');
+    if ($v === 'block' || $v === 'block_all') {
+        return 'block_all';
+    }
+    return 'per_template';
 }
 
 // ---------------------------------------------------------------------------

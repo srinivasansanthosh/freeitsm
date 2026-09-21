@@ -168,6 +168,14 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                     </select>
                 </div>
                 <div class="ed-field">
+                    <label for="edClosureMode"><?php echo htmlspecialchars(t('checklists.editor.closure_mode')); ?></label>
+                    <select id="edClosureMode" class="ed-select">
+                        <option value="warn"><?php echo htmlspecialchars(t('checklists.editor.closure_warn')); ?></option>
+                        <option value="block"><?php echo htmlspecialchars(t('checklists.editor.closure_block')); ?></option>
+                    </select>
+                    <span style="font-size: 11px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('checklists.editor.closure_mode_desc')); ?></span>
+                </div>
+                <div class="ed-field">
                     <label for="edDesc">Description</label>
                     <textarea id="edDesc" class="ed-textarea" placeholder="When and why to use this procedure."></textarea>
                 </div>
@@ -374,6 +382,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                 document.getElementById('edName').value     = t.title || '';
                 document.getElementById('edCategory').value = t.category || '';
                 document.getElementById('edScope').value    = t.scope || 'both';
+                document.getElementById('edClosureMode').value = (t.closure_mode === 'block') ? 'block' : 'warn';
                 document.getElementById('edDesc').value     = t.description || '';
                 document.getElementById('edKeywords').value = t.keywords || '';
                 steps = (t.items || []).map(function (it) {
@@ -403,6 +412,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                 title: title,
                 category: document.getElementById('edCategory').value.trim(),
                 scope: document.getElementById('edScope').value,
+                closure_mode: document.getElementById('edClosureMode').value,
                 description: document.getElementById('edDesc').value.trim(),
                 keywords: document.getElementById('edKeywords').value.trim(),
                 items: steps.filter(function (s) { return (s.title || '').trim() !== ''; })
@@ -426,7 +436,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
             }
         });
 
-        ['edName', 'edCategory', 'edScope', 'edDesc', 'edKeywords'].forEach(function (id) {
+        ['edName', 'edCategory', 'edScope', 'edClosureMode', 'edDesc', 'edKeywords'].forEach(function (id) {
             document.getElementById(id).addEventListener('input', markDirty);
         });
 

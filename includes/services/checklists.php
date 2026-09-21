@@ -62,7 +62,7 @@ class ChecklistsService
         // Checklists module must not have its ticket closures start failing.
         try {
             $stmt = $conn->prepare(
-                "SELECT i.id AS item_id, i.title AS step, c.title AS checklist
+                "SELECT i.id AS item_id, i.title AS step, c.title AS checklist, c.closure_mode
                    FROM ticket_checklist_items i
                    JOIN ticket_checklists c ON c.id = i.ticket_checklist_id
                   WHERE c.ticket_id = ?
@@ -97,19 +97,53 @@ class ChecklistsService
      * browser so the REST API, bulk actions and automation obey whichever the
      * operator chose; that is the whole reason the rule left inbox.js.
      */
+    /**
+     * Resolve a checklist's effective closure mode against the company setting.
+     */
+    public static function effectiveClosureMode(string $mode, PDO $conn, ?int $tenantId = null): string
+    {
+        // Master company override: if set to 'block_all', all checklists block closure.
+        if (function_exists('ticketChecklistClosureMode')) {
+            $companyPolicy = ticketChecklistClosureMode($conn, $tenantId);
+            if ($companyPolicy === 'block_all' || $companyPolicy === 'block') {
+                return 'block';
+            }
+        }
+
+        // Per-template policy: respect the individual checklist template setting.
+        return ($mode === 'block') ? 'block' : 'warn';
+    }
+
     public static function assertClosureAllowed(PDO $conn, int $ticketId, ?int $tenantId = null): void
     {
-        if (!function_exists('ticketChecklistClosureMode')) return;
-        if (ticketChecklistClosureMode($conn, $tenantId) !== 'block') return;
-
         $outstanding = self::outstandingMandatorySteps($conn, $ticketId);
         if (!$outstanding) return;
 
-        $names = implode(', ', array_map(fn($r) => $r['step'], $outstanding));
+        $blocking = [];
+        foreach ($outstanding as $step) {
+            $mode = self::effectiveClosureMode($step['closure_mode'] ?? 'inherit', $conn, $tenantId);
+            if ($mode === 'block') {
+                $blocking[] = $step;
+            }
+        }
+
+        if (!$blocking) return;
+
+        $grouped = [];
+        foreach ($blocking as $r) {
+            $cName = $r['checklist'] ?: 'Checklist';
+            $grouped[$cName][] = $r['step'];
+        }
+        $parts = [];
+        foreach ($grouped as $cName => $steps) {
+            $parts[] = $cName . ' (' . implode(', ', $steps) . ')';
+        }
+        $summary = implode('; ', $parts);
+
         throw new ServiceError(
             'validation',
             'mandatory_steps_outstanding',
-            'This ticket cannot be closed until its mandatory SOP steps are complete: ' . $names
+            'This ticket cannot be closed until mandatory SOP steps are complete: ' . $summary
         );
     }
 

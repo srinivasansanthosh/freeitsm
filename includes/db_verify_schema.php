@@ -4498,6 +4498,7 @@ return [
         'category'         => "VARCHAR(100) DEFAULT 'General'",
         'suggested_role'   => 'VARCHAR(100) DEFAULT NULL',
         'scope'            => "ENUM('ticket','task','both') NOT NULL DEFAULT 'both'",
+        'closure_mode'     => "ENUM('inherit','warn','block') NOT NULL DEFAULT 'inherit'",
         'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_by_id'    => 'INT DEFAULT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
@@ -4523,6 +4524,7 @@ return [
         'ticket_id'        => 'INT NOT NULL',
         'template_id'      => 'INT DEFAULT NULL',
         'title'            => 'VARCHAR(255) NOT NULL',
+        'closure_mode'     => "ENUM('inherit','warn','block') NOT NULL DEFAULT 'inherit'",
         'created_by_id'    => 'INT DEFAULT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'is_demo'          => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer

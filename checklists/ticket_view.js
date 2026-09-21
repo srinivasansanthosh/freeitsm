@@ -80,7 +80,11 @@ function getIncompleteMandatorySteps() {
             const isMand = (it.is_mandatory == 1 || it.is_mandatory === true || it.is_mandatory === '1');
             const isComp = (it.is_completed == 1 || it.is_completed === true || it.is_completed === '1');
             if (isMand && !isComp) {
-                list.push({ checklist: chk.title, step: it.title });
+                list.push({
+                    checklist: chk.title,
+                    step: it.title,
+                    closure_mode: chk.effective_closure_mode || chk.closure_mode || 'warn'
+                });
             }
         });
     });
@@ -173,7 +177,7 @@ function renderTicketChecklistsInline(ticketId) {
         html += `
             <div style="border: 1px solid var(--border, #f1f5f9); border-radius: 6px; padding: 8px 10px; background: var(--surface-hover, #f8fafc);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                    <span style="font-size: 12px; font-weight: 600; color: var(--text, #334155);">${escapeHtml(chk.title)}</span>
+                    <span style="font-size: 12px; font-weight: 600; color: var(--text, #334155); display: inline-flex; align-items: center; gap: 4px;">${escapeHtml(chk.title)}${chk.effective_closure_mode === 'block' ? '<span title="' + escapeHtml((typeof t === "function" ? t("tickets.checklists.mandatory_for_closure") : "") || "Mandatory for closure") + '" style="display: inline-flex; color: #dc2626;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>' : ''}</span>
                     <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted, #64748b);">
                         <span style="font-weight: 600; color: ${allDone ? '#16a34a' : 'inherit'};">${percent}%</span>
                         <div style="width: 50px; height: 5px; background: var(--border, #e2e8f0); border-radius: 3px; overflow: hidden;">
@@ -246,7 +250,7 @@ function openChecklistModal(ticketId) {
                 <div style="border: 1px solid var(--border, #e2e8f0); border-radius: 8px; margin-bottom: 16px; overflow: hidden; background: var(--surface, #ffffff);">
                     <div style="padding: 10px 14px; background: var(--surface-hover, #f8fafc); border-bottom: 1px solid var(--border, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="font-size: 14px; color: var(--text, #1e293b);">${escapeHtml(chk.title)}</strong>
+                            <strong style="font-size: 14px; color: var(--text, #1e293b); display: inline-flex; align-items: center; gap: 6px;">${escapeHtml(chk.title)}${chk.effective_closure_mode === 'block' ? '<span title="' + escapeHtml((typeof t === "function" ? t("tickets.checklists.mandatory_for_closure") : "") || "Mandatory for closure") + '" style="display: inline-flex; color: #dc2626;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>' : ''}</strong>
                             <div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">
                                 ${chk.completed_items || 0} of ${chk.total_items || 0} steps completed (${percent}%)
                             </div>
@@ -520,7 +524,7 @@ async function openAttachChecklistModal(ticketId) {
     }
 
     try {
-        const res = await fetch(CHK_API + '?action=list_templates_for_ticket');
+        const res = await fetch(CHK_API + '?action=list_templates_for_ticket&ticket_id=' + encodeURIComponent(ticketId || ''));
         const data = await res.json();
         if (!data.success) {
             showToast(data.error || 'Could not load the templates', 'error');
@@ -600,7 +604,10 @@ function filterTemplatesList(ticketId) {
         html += `
             <div class="chk-tpl-row">
                 <div class="chk-tpl-top">
-                    <span class="chk-tpl-title">${escapeHtml(t.title)}</span>
+                    <span class="chk-tpl-title" style="display: inline-flex; align-items: center; gap: 5px;">
+                        ${escapeHtml(t.title)}
+                        ${t.effective_closure_mode === 'block' ? '<span title="' + escapeHtml((typeof t === "function" ? t("tickets.checklists.mandatory_for_closure") : "") || "Mandatory for closure") + '" style="display: inline-flex; color: #dc2626;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>' : ''}
+                    </span>
                     <span class="chk-tpl-pill ${categoryPillClass(t.category)}">${escapeHtml(t.category || 'General')}</span>
                 </div>
                 ${t.description ? `<p class="chk-tpl-desc">${escapeHtml(t.description)}</p>` : ''}

@@ -8,6 +8,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once __DIR__ . "/../../config.php";
 require_once __DIR__ . "/../../includes/functions.php";
+require_once __DIR__ . "/../../includes/tenant_settings.php";
+require_once __DIR__ . "/../../includes/services/checklists.php";
 
 $conn = connectToDatabase();
 
@@ -45,12 +47,26 @@ try {
             // the author's earlier naming, MySQL raised "Unknown column 'created_at'"
             // and this endpoint returned an error for every ticket. See the wiki:
             // Checklists-Module-House-Style, "the fallback to a column that never existed".
-            $stmt = $conn->prepare("SELECT id, template_id, title, created_datetime
+            require_once __DIR__ . "/../../includes/tenant_settings.php";
+            require_once __DIR__ . "/../../includes/services/checklists.php";
+
+            // Resolve the ticket's tenant so company policy overrides propagate
+            $tktTenantStmt = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ? LIMIT 1");
+            $tktTenantStmt->execute([$ticketId]);
+            $rawTenant = $tktTenantStmt->fetchColumn();
+            $ticketTenantId = ($rawTenant !== false && $rawTenant !== null) ? (int)$rawTenant : null;
+
+            $stmt = $conn->prepare("SELECT id, template_id, title, closure_mode, created_datetime
                                     FROM ticket_checklists
                                     WHERE ticket_id = ?
                                     ORDER BY id ASC");
             $stmt->execute([$ticketId]);
             $checklists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($checklists as &$chk) {
+                $chk["closure_mode"] = $chk["closure_mode"] ?? "warn";
+                $chk["effective_closure_mode"] = ChecklistsService::effectiveClosureMode($chk["closure_mode"], $conn, $ticketTenantId);
+            }
+            unset($chk);
 
             foreach ($checklists as &$chk) {
                 // Same fix as above: completed_by and completed_at never existed either.
@@ -150,8 +166,23 @@ try {
             exit;
 
         case "list_templates_for_ticket":
-            $stmt = $conn->query("SELECT id, title, category, description, keywords FROM checklist_templates WHERE scope IN ('ticket', 'both') AND (is_active = 1 OR is_active IS NULL) ORDER BY category ASC, title ASC");
+            $ticketId = (int)($_GET["ticket_id"] ?? $_POST["ticket_id"] ?? 0);
+            $tenantId = null;
+            if ($ticketId > 0) {
+                $tktTenantStmt = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ? LIMIT 1");
+                $tktTenantStmt->execute([$ticketId]);
+                $rawTenant = $tktTenantStmt->fetchColumn();
+                $tenantId = ($rawTenant !== false && $rawTenant !== null) ? (int)$rawTenant : null;
+            }
+
+            $stmt = $conn->query("SELECT id, title, category, description, keywords, closure_mode FROM checklist_templates WHERE scope IN ('ticket', 'both') AND (is_active = 1 OR is_active IS NULL) ORDER BY category ASC, title ASC");
             $templates = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($templates as &$tpl) {
+                $tpl["closure_mode"] = $tpl["closure_mode"] ?? "warn";
+                $tpl["effective_closure_mode"] = ChecklistsService::effectiveClosureMode($tpl["closure_mode"], $conn, $tenantId);
+            }
+            unset($tpl);
+
             echo json_encode(["success" => true, "templates" => $templates]);
             exit;
 
@@ -160,13 +191,14 @@ try {
             $templateId = (int)($_POST["template_id"] ?? 0);
             if ($ticketId <= 0 || $templateId <= 0) throw new Exception("ticket_id and template_id required");
 
-            $tplStmt = $conn->prepare("SELECT title FROM checklist_templates WHERE id = ?");
+            $tplStmt = $conn->prepare("SELECT title, closure_mode FROM checklist_templates WHERE id = ?");
             $tplStmt->execute([$templateId]);
             $tpl = $tplStmt->fetch(PDO::FETCH_ASSOC);
             if (!$tpl) throw new Exception("Template not found");
 
-            $ins = $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, created_by_id, created_datetime) VALUES (?, ?, ?, ?, NOW())");
-            $ins->execute([$ticketId, $templateId, $tpl["title"], $analystId]);
+            $closureMode = (($tpl["closure_mode"] ?? "") === "block") ? "block" : "warn";
+            $ins = $conn->prepare("INSERT INTO ticket_checklists (ticket_id, template_id, title, closure_mode, created_by_id, created_datetime) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+            $ins->execute([$ticketId, $templateId, $tpl["title"], $closureMode, $analystId]);
             $chkId = $conn->lastInsertId();
 
             $itemsStmt = $conn->prepare("SELECT title, suggested_role, is_mandatory, requires_input, input_placeholder, sort_order FROM checklist_template_items WHERE template_id = ? ORDER BY sort_order ASC, id ASC");

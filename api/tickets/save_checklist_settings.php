@@ -31,8 +31,8 @@ requireCapabilityJson(Cap::TICKETS_CHECKLISTS);
 $in   = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 $mode = (string)($in['mode'] ?? '');
 
-if ($mode !== 'warn' && $mode !== 'block') {
-    echo json_encode(['success' => false, 'error' => 'Mode must be "warn" or "block".']);
+if ($mode !== 'per_template' && $mode !== 'block_all') {
+    echo json_encode(['success' => false, 'error' => 'Mode must be "per_template" or "block_all".']);
     exit;
 }
 
