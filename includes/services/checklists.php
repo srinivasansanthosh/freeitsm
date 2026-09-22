@@ -50,6 +50,21 @@ require_once __DIR__ . '/../tenant_settings.php';   // ticketChecklistClosureMod
 class ChecklistsService
 {
     /**
+     * Check if a ticket has at least one checklist / SOP attached.
+     */
+    public static function hasAttachedChecklists(PDO $conn, int $ticketId): bool
+    {
+        if ($ticketId <= 0) return false;
+        try {
+            $stmt = $conn->prepare("SELECT 1 FROM ticket_checklists WHERE ticket_id = ? LIMIT 1");
+            $stmt->execute([$ticketId]);
+            return (bool)$stmt->fetchColumn();
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Mandatory steps still outstanding on a ticket.
      *
      * @return array<int, array{checklist: string, step: string, item_id: int}>
@@ -116,6 +131,20 @@ class ChecklistsService
 
     public static function assertClosureAllowed(PDO $conn, int $ticketId, ?int $tenantId = null): void
     {
+        // Check if ticket is empty of SOPs and company blocks closure without SOP
+        if (!self::hasAttachedChecklists($conn, $ticketId)) {
+            if (function_exists('ticketChecklistEmptyClosureMode')) {
+                $emptyMode = ticketChecklistEmptyClosureMode($conn, $tenantId);
+                if ($emptyMode === 'block') {
+                    throw new ServiceError(
+                        'validation',
+                        'no_sop_attached',
+                        'This ticket cannot be closed without at least one attached SOP or checklist.'
+                    );
+                }
+            }
+            return;
+        }
         $outstanding = self::outstandingMandatorySteps($conn, $ticketId);
         if (!$outstanding) return;
 
@@ -149,6 +178,32 @@ class ChecklistsService
 
     public static function recordClosureOverride(PDO $conn, ActorContext $ctx, int $ticketId): array
     {
+        // Check if ticket closed with zero attached SOPs and company warns
+        if (!self::hasAttachedChecklists($conn, $ticketId)) {
+            if (function_exists('ticketChecklistEmptyClosureMode')) {
+                $emptyMode = ticketChecklistEmptyClosureMode($conn, null);
+                if ($emptyMode === 'warn') {
+                    $who = $ctx->actorName !== '' ? $ctx->actorName : ('analyst #' . $ctx->actorId);
+                    $via = $ctx->source === 'api' ? 'the API' : 'the web interface';
+                    $by  = $ctx->source === 'workflow' ? 'Closed by a workflow.' : "Closed by {$who} via {$via}.";
+                    $note = "⚠️ Ticket closed without any attached SOP or procedure.\n{$by}";
+                    try {
+                        if ($ctx->actorId > 0) {
+                            $conn->prepare(
+                                "INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
+                                 VALUES (?, ?, ?, 1, UTC_TIMESTAMP())"
+                            )->execute([$ticketId, $ctx->actorId, $note]);
+                        } else {
+                            $conn->prepare(
+                                "INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime)
+                                 VALUES (?, 1, ?, 1, UTC_TIMESTAMP())"
+                            )->execute([$ticketId, "[Workflow Note]\n" . $note]);
+                        }
+                    } catch (Throwable $e) {}
+                }
+            }
+            return [];
+        }
         $outstanding = self::outstandingMandatorySteps($conn, $ticketId);
         if (!$outstanding) return [];
 

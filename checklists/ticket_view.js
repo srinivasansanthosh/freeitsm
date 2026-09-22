@@ -55,6 +55,7 @@ async function loadTicketChecklists(ticketId) {
         }
 
         ticketChecklistsData = data.checklists || [];
+            window.ticketChecklistEmptyClosureMode = data.empty_closure_mode || 'off';
         renderChecklistToolbarButton(ticketId);
         renderTicketChecklistsInline(ticketId);
     } catch (e) {
@@ -658,6 +659,17 @@ function escapeHtml(str) {
 window.loadTicketChecklists = loadTicketChecklists;
 window.openChecklistModal = openChecklistModal;
 window.openAttachChecklistModal = openAttachChecklistModal;
+function getAttachedChecklistsCount() {
+    if (!Array.isArray(ticketChecklistsData)) return 0;
+    return ticketChecklistsData.length;
+}
+
+function getTicketChecklistEmptyClosureMode() {
+    return window.ticketChecklistEmptyClosureMode || 'off';
+}
+
+window.getAttachedChecklistsCount = getAttachedChecklistsCount;
+window.getTicketChecklistEmptyClosureMode = getTicketChecklistEmptyClosureMode;
 window.getIncompleteMandatorySteps = getIncompleteMandatorySteps;
 
 

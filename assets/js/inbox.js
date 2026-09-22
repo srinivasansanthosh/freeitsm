@@ -4460,6 +4460,59 @@ async function assignStatus() {
         return;
     }
 
+        // SOP checklists: check closure if ticket has NO procedure attached
+    if (closing) {
+        let attachedCount = 0;
+        let emptyMode = 'off';
+        if (typeof getAttachedChecklistsCount === "function") {
+            attachedCount = getAttachedChecklistsCount();
+        }
+        if (typeof getTicketChecklistEmptyClosureMode === "function") {
+            emptyMode = getTicketChecklistEmptyClosureMode();
+        }
+
+        if (attachedCount === 0 && emptyMode !== 'off') {
+            const ticketId = (currentEmail && (currentEmail.ticket_id || currentEmail.id)) ? (currentEmail.ticket_id || currentEmail.id) : null;
+            const safeT = (k, fallback) => {
+                if (typeof t === 'function') {
+                    const v = t(k);
+                    if (v && v !== k && !v.startsWith('tickets.') && !v.startsWith('common.')) return v;
+                }
+                return fallback;
+            };
+
+            if (emptyMode === 'block') {
+                await showConfirm({
+                    title: safeT('tickets.checklists.no_sop_blocked_title', 'SOP procedure required'),
+                    message: safeT('tickets.checklists.no_sop_blocked_msg', 'This ticket cannot be closed without at least one attached SOP or checklist.'),
+                    okLabel: safeT('tickets.checklists.attach_sop', 'Attach procedure'),
+                    okClass: 'primary',
+                    cancelLabel: safeT('common.close', 'Close')
+                });
+                select.value = oldValue;
+                if (typeof openAttachChecklistModal === "function" && ticketId) {
+                    openAttachChecklistModal(ticketId);
+                }
+                return;
+            } else if (emptyMode === 'warn') {
+                const ok = await showConfirm({
+                    title: safeT('tickets.checklists.no_sop_warn_title', 'No SOP attached'),
+                    message: safeT('tickets.checklists.no_sop_warn_msg', 'This ticket has no procedure or checklist attached. Are you sure you want to close it without an SOP?'),
+                    okLabel: safeT('tickets.checklists.close_without_sop', 'Close without SOP'),
+                    okClass: 'danger',
+                    cancelLabel: safeT('common.cancel', 'Cancel')
+                });
+                if (!ok) {
+                    select.value = oldValue;
+                    if (typeof openAttachChecklistModal === "function" && ticketId) {
+                        openAttachChecklistModal(ticketId);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
     // SOP checklists (PR #141): outstanding mandatory steps WARN and are
     // recorded, they do not block — the same line the tasks check above draws,
     // and for the same reason. As contributed this was a hard block with an

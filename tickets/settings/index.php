@@ -34,6 +34,7 @@ $activeTabId      = settingsFirstTabId($visibleTabs);
 // actually in force, the same reason row display below is read here.
 require_once '../../includes/tenant_settings.php';
 $checklistClosureMode = ticketChecklistClosureMode($conn, null);
+$checklistEmptyClosureMode = function_exists('ticketChecklistEmptyClosureMode') ? ticketChecklistEmptyClosureMode($conn, null) : 'off';
 
 // Mandatory fields at closure — the same reason: the tab opens on what is in force.
 require_once '../../includes/service_context.php';
@@ -818,6 +819,36 @@ $translationNamespaces = ['common', 'tickets'];
             <p style="margin-top: 18px; font-size: 12px; color: var(--text-muted, #64748b); max-width: 720px;">
                 <?php echo htmlspecialchars(t('tickets.settings.checklists.always_recorded')); ?>
             </p>
+            <div style="margin-top: 32px; border-top: 1px solid var(--border, #e2e8f0); padding-top: 24px;">
+                <div class="section-header">
+                    <h2><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_section_title')); ?></h2>
+                </div>
+                <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_section_desc')); ?></p>
+
+                <div style="display: flex; flex-direction: column; gap: 14px; max-width: 720px;">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="radio" name="chkEmptyClosureMode" value="off" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'off' ? ' checked' : ''; ?>>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_title')); ?></div>
+                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_off_desc')); ?></div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="radio" name="chkEmptyClosureMode" value="warn" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'warn' ? ' checked' : ''; ?>>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_title')); ?></div>
+                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_warn_desc')); ?></div>
+                        </div>
+                    </label>
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="radio" name="chkEmptyClosureMode" value="block" style="margin-top: 3px;"<?php echo $checklistEmptyClosureMode === 'block' ? ' checked' : ''; ?>>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; color: var(--text, #0f172a);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_title')); ?></div>
+                            <div style="font-size: 12px; color: var(--text-muted, #64748b);"><?php echo htmlspecialchars(t('tickets.settings.checklists.empty_block_desc')); ?></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
 
             <div style="margin-top: 22px;">
                 <button class="add-btn" id="chkClosureSave"><?php echo htmlspecialchars(t('common.save')); ?></button>
@@ -8493,7 +8524,10 @@ $translationNamespaces = ['common', 'tickets'];
                         const r = await fetch(API_BASE + 'save_checklist_settings.php', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ mode: picked.value })
+                            body: JSON.stringify({
+                                mode: picked.value,
+                                empty_mode: (document.querySelector('input[name="chkEmptyClosureMode"]:checked') || {}).value || 'off'
+                            })
                         });
                         const d = await r.json();
                         showToast(d.success ? T.settingsSaved : (d.error || 'Failed'), d.success ? 'success' : 'error');

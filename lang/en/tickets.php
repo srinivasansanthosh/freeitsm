@@ -1445,9 +1445,23 @@ return [
         // second option actually prevents the close.
         'checklists' => [
             'per_template_title' => 'Follow setting in each checklist template (Recommended)',
-            'per_template_desc'  => 'Each SOP template decides its own gate: warn analysts on standard procedures, or block closure on critical ones.',
+            'per_template_desc'  => 'Each template decides its own gate: warn analysts on standard procedures, or block closure on critical ones.',
             'block_all_title'    => 'Block all tickets with outstanding steps',
-            'block_all_desc'     => 'Master override: no ticket can reach a closed status until every mandatory checklist step is ticked, regardless of the template setting.',
+            'block_all_desc'     => 'Master override: no ticket can reach a closed status until every mandatory step is ticked, regardless of the template setting.',
+                        'empty_section_title' => 'Closing a ticket with no attached procedure',
+            'empty_section_desc'  => 'How closure behaves when a ticket has no SOP or checklist attached.',
+            'empty_off_title'     => 'Allow closing without a procedure (Default)',
+            'empty_off_desc'      => 'Tickets can close normally without any template attached.',
+            'empty_warn_title'    => 'Warn and record override note',
+            'empty_warn_desc'     => 'Prompts a confirmation dialog; if confirmed, records an audit note in the timeline.',
+            'empty_block_title'   => 'Block closure until a procedure is attached',
+            'empty_block_desc'    => 'Prevents ticket closure until at least one template is attached.',
+            'no_sop_blocked_title'=> 'SOP procedure required',
+            'no_sop_blocked_msg'  => 'This ticket cannot be closed without at least one attached SOP or checklist.',
+            'no_sop_warn_title'   => 'No SOP attached',
+            'no_sop_warn_msg'     => 'This ticket has no procedure or checklist attached. Are you sure you want to close it without an SOP?',
+            'close_without_sop'   => 'Close without SOP',
+            'attach_sop'          => 'Attach procedure',
             'always_recorded'    => 'Closing with steps outstanding always writes an internal note naming the skipped steps and who closed it.',
         ],
 
@@ -1491,7 +1505,7 @@ return [
         ],
 
         'intros' => [
-            'checklists'      => 'An SOP checklist can mark steps as mandatory. This decides what happens if somebody closes a ticket before those steps are ticked.',
+            'checklists'      => 'An SOP or checklist can mark steps as mandatory. This decides what happens if somebody closes a ticket before those steps are ticked.',
             'mandatory_fields' => 'Choose which ticket fields must be filled in before a ticket is closed, and what happens when somebody closes one with any of them empty. The rule applies everywhere a ticket can be closed: the ticket screen, bulk actions, the REST API and workflows.',
             'departments'     => 'Departments group and route tickets to the right area of your organisation — create the ones your service desk uses to categorise and assign work.',
             'teams'           => 'Teams determine which departments analysts can access. Assign departments to teams, then assign analysts to teams to control their access.',

@@ -5882,7 +5882,8 @@ INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
     ('tasks_calendar_span_mode', 'deadline');
 
 INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
-    ('ticket_checklist_closure_mode', 'per_template');
+    ('ticket_checklist_closure_mode', 'per_template'),
+    ('ticket_checklist_empty_closure_mode', 'off');
 
 -- SSO global switches: master kill switch (off until a provider is configured)
 -- and the local-login break-glass toggle (on by default).

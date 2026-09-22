@@ -89,7 +89,7 @@ try {
                 $chk["percent"] = $total > 0 ? round(($done / $total) * 100) : 0;
             }
 
-            echo json_encode(["success" => true, "checklists" => $checklists]);
+            echo json_encode(["success" => true, "checklists" => $checklists, "empty_closure_mode" => ticketChecklistEmptyClosureMode($conn, $ticketTenantId ?? ($tenantId ?? null))]);
             exit;
 
         case "suggest_template":
