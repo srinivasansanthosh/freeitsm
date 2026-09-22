@@ -170,6 +170,10 @@ $translationNamespaces = ['common', 'checklists'];
                             <div class="help-step-num">5</div>
                             <div><?php echo t('checklists.help.building_step5'); ?></div>
                         </div>
+                        <div class="help-step">
+                            <div class="help-step-num">6</div>
+                            <div><?php echo t('checklists.help.building_step6'); ?></div>
+                        </div>
                     </div>
                     <p class="help-note"><?php echo t('checklists.help.building_note'); ?></p>
                 </div>
@@ -180,7 +184,7 @@ $translationNamespaces = ['common', 'checklists'];
                         <span class="help-section-num">3</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('checklists.help.steps_heading')); ?></h3>
-                            <p><?php echo htmlspecialchars(t('checklists.help.steps_intro')); ?></p>
+                            <p><?php echo t('checklists.help.steps_intro'); ?></p>
                         </div>
                     </div>
                     <div class="help-cards">
@@ -254,6 +258,10 @@ $translationNamespaces = ['common', 'checklists'];
                         <div class="help-card">
                             <h4><?php echo htmlspecialchars(t('checklists.help.closing_block_title')); ?></h4>
                             <p><?php echo htmlspecialchars(t('checklists.help.closing_block_desc')); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <h4><?php echo htmlspecialchars(t('checklists.help.closing_empty_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('checklists.help.closing_empty_desc')); ?></p>
                         </div>
                     </div>
                     <p class="help-note"><?php echo t('checklists.help.closing_enforced'); ?></p>

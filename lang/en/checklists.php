@@ -57,6 +57,7 @@ return [
         'building_step3'   => '<strong>Applies to</strong> - whether the checklist is offered on tickets, on tasks, or on both.',
         'building_step4'   => '<strong>Description</strong> - when and why to use this one. This is what somebody reads when deciding between two similar checklists, so it earns its place.',
         'building_step5'   => '<strong>Keywords</strong> - comma separated, and the reason a checklist finds its own ticket. A VPN checklist tagged <code>vpn, remote access, token</code> is offered on a ticket about any of them.',
+        'building_step6'   => '<strong>Closure gate</strong> - choose how mandatory steps behave when a ticket is closed: <em>Standard</em> (warns the analyst and records an audit note if overridden) or <em>Critical</em> (strictly blocks ticket closure until completed).',
         'building_note'    => 'Editing a template does not change checklists already attached to tickets. An attached checklist is a copy taken at the moment it was attached, so a ticket half way through a job keeps the steps the analyst started with.',
 
         // 3 ---------------------------------------------------------------
@@ -83,12 +84,14 @@ return [
 
         // 5 ---------------------------------------------------------------
         'closing_heading' => 'Mandatory steps and closing a ticket',
-        'closing_intro'   => 'A mandatory step is only worth marking if something happens when it is skipped. What happens is your choice, in <strong>Tickets &rarr; Settings &rarr; Checklists</strong>.',
-        'closing_warn_title'  => 'Warn',
-        'closing_warn_desc'   => 'The ticket closes, and an internal note records that it was closed with steps outstanding - which ones, who closed it, and whether they did it from the web interface or the API. The default, and the right setting for most desks: the analyst usually has a reason, and the note means nobody has to remember it.',
-        'closing_block_title' => 'Block',
-        'closing_block_desc'  => 'The close is refused until the mandatory steps are done, and the message names them. Choose this where the checklist is the point - a regulated process, or a leaver checklist where a missed step leaves access live.',
-        'closing_enforced'    => '<strong>Whichever you choose is enforced everywhere a ticket can be closed</strong>, not just on the button in front of you: bulk actions, the REST API and workflow automation all obey it. A rule that only lives in one screen is not a rule, and a gate that can be walked around reports control that is not there.',
+        'closing_intro'   => 'A mandatory step is only worth marking if something happens when it is skipped. Each checklist template decides its own gate, while administrators can enforce company-wide rules in <strong>Tickets &rarr; Settings &rarr; Checklists</strong>.',
+        'closing_warn_title'  => 'Standard (Warn & audit)',
+        'closing_warn_desc'   => 'The analyst is prompted with a warning listing the skipped mandatory steps. If they confirm closure, an internal timeline note records which steps were skipped, who closed it, and whether it was closed from the web inbox, bulk actions, workflow, or API.',
+        'closing_block_title' => 'Critical (Block closure)',
+        'closing_block_desc'  => 'The ticket cannot be closed until all mandatory checklist steps are completed. Choose this for regulated procedures, leaver offboarding where access could remain live, or critical infrastructure changes.',
+        'closing_empty_title' => 'Closing without a checklist',
+        'closing_empty_desc'  => 'Tickets settings also lets organizations control tickets closed with zero attached checklists: allow closing normally, warn and log an audit note, or block closure until at least one checklist is attached.',
+        'closing_enforced'    => '<strong>Whichever gate is active is enforced everywhere a ticket can be closed</strong>, not just in the web interface: bulk actions, the REST API and workflow automation all obey it. If a ticket contains both standard and critical checklists, the strictest gate always wins.',
 
         // 6 ---------------------------------------------------------------
         'settings_heading' => 'Settings',
@@ -96,7 +99,7 @@ return [
         'settings_mod_title'  => 'Checklists &rarr; Settings',
         'settings_mod_desc'   => '<strong>Categories</strong> group templates and colour their pills. <strong>Roles</strong> fill the "suggested role" list on a step. Both show how many steps or templates use an entry before you delete it. <strong>Left panel</strong> is a per-account preference: keep the template sidebar always visible, or let it appear on hover.',
         'settings_tick_title' => 'Tickets &rarr; Settings &rarr; Checklists',
-        'settings_tick_desc'  => 'Warn or block on closing a ticket with mandatory steps outstanding. It sits with the ticket settings rather than here because it is a rule about closing tickets, and that is where somebody will look for it.',
+        'settings_tick_desc'  => 'Configure company-wide checklist close gates: follow each template\'s gate (Standard vs Critical) or block all tickets with outstanding steps. Also controls enforcement when closing a ticket with no attached checklist (Allow, Warn, or Block).',
         'settings_demo'       => '<strong>System &rarr; Demo data</strong> will seed five realistic checklists - onboarding, offboarding, server decommissioning, VPN troubleshooting and a firewall change - so you can see the module working before writing anything. Removing the demo data removes exactly those and nothing you wrote.',
 
         // 7 ---------------------------------------------------------------

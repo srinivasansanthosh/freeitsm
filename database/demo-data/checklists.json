@@ -22,6 +22,7 @@
                 "scope": "both",
                 "keywords": "onboarding, new starter, new hire, joiner, provisioning, account",
                 "description": "Everything a new joiner needs on day one. Mandatory steps cover the things that stop somebody working; the badge and the welcome session do not.",
+                "closure_mode": "warn",
                 "is_active": 1,
                 "created_by_id": "@analysts.admin"
             },
@@ -32,6 +33,7 @@
                 "scope": "both",
                 "keywords": "offboarding, leaver, termination, revoke, return, exit",
                 "description": "Revoking access and recovering equipment when somebody leaves. Every access step is mandatory - this is the checklist an auditor will ask to see.",
+                "closure_mode": "block",
                 "is_active": 1,
                 "created_by_id": "@analysts.admin"
             },
@@ -42,6 +44,7 @@
                 "scope": "ticket",
                 "keywords": "decommission, retire, server, hypervisor, teardown, wipe",
                 "description": "Procedural gating before a server is retired. Nothing here is reversible once the storage is wiped, so the verification steps come first and are mandatory.",
+                "closure_mode": "block",
                 "is_active": 1,
                 "created_by_id": "@analysts.admin"
             },
@@ -52,6 +55,7 @@
                 "scope": "ticket",
                 "keywords": "vpn, remote access, mfa, token, tunnel, gateway",
                 "description": "Standard first-line procedure for remote access problems, in the order that resolves the most tickets soonest.",
+                "closure_mode": "warn",
                 "is_active": 1,
                 "created_by_id": "@analysts.admin"
             },
@@ -62,6 +66,7 @@
                 "scope": "both",
                 "keywords": "firewall, rule, port, acl, allow, change",
                 "description": "A firewall change is small, quick and occasionally catastrophic. The approval and the rollback note are mandatory; the rest is method.",
+                "closure_mode": "block",
                 "is_active": 1,
                 "created_by_id": "@analysts.admin"
             }
