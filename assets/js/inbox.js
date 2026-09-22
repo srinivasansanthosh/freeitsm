@@ -4483,9 +4483,9 @@ async function assignStatus() {
 
             if (emptyMode === 'block') {
                 await showConfirm({
-                    title: safeT('tickets.checklists.no_sop_blocked_title', 'SOP procedure required'),
-                    message: safeT('tickets.checklists.no_sop_blocked_msg', 'This ticket cannot be closed without at least one attached SOP or checklist.'),
-                    okLabel: safeT('tickets.checklists.attach_sop', 'Attach procedure'),
+                    title: safeT('tickets.checklists.no_checklist_blocked_title', 'Checklist required'),
+                    message: safeT('tickets.checklists.no_checklist_blocked_msg', 'This ticket cannot be closed without at least one attached checklist.'),
+                    okLabel: safeT('tickets.checklists.attach_checklist', 'Attach checklist'),
                     okClass: 'primary',
                     cancelLabel: safeT('common.close', 'Close')
                 });
@@ -4496,9 +4496,9 @@ async function assignStatus() {
                 return;
             } else if (emptyMode === 'warn') {
                 const ok = await showConfirm({
-                    title: safeT('tickets.checklists.no_sop_warn_title', 'No SOP attached'),
-                    message: safeT('tickets.checklists.no_sop_warn_msg', 'This ticket has no procedure or checklist attached. Are you sure you want to close it without an SOP?'),
-                    okLabel: safeT('tickets.checklists.close_without_sop', 'Close without SOP'),
+                    title: safeT('tickets.checklists.no_checklist_warn_title', 'No checklist attached'),
+                    message: safeT('tickets.checklists.no_checklist_warn_msg', 'This ticket has no checklist attached. Are you sure you want to close it without a checklist?'),
+                    okLabel: safeT('tickets.checklists.close_without_checklist', 'Close without checklist'),
                     okClass: 'danger',
                     cancelLabel: safeT('common.cancel', 'Cancel')
                 });
@@ -4536,7 +4536,7 @@ async function assignStatus() {
 
                 await showConfirm({
                     title: t('tickets.checklists.blocked_title') || 'Mandatory steps required',
-                    message: (t('tickets.checklists.blocked_message') || 'This ticket cannot be closed until mandatory SOP steps are complete:') + "\n\n" + stepList,
+                    message: (t('tickets.checklists.blocked_message') || 'This ticket cannot be closed until mandatory checklist steps are complete:') + "\n\n" + stepList,
                     okLabel: t('tickets.checklists.view_checklist') || 'View checklist',
                     okClass: 'primary',
                     cancelLabel: t('common.close') || 'Close'

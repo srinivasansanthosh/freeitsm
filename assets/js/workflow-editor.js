@@ -358,7 +358,7 @@ const WFE = (() => {
                 case 'create_ticket':       snippet = String(args.subject || ''); break;
                 case 'attach_checklist': {
                     const tpls = Array.isArray(args.template_ids) ? args.template_ids : (typeof args.template_ids === 'string' && args.template_ids !== '' ? args.template_ids.split(',') : []);
-                    snippet = '+ Attach ' + tpls.length + ' SOP(s)';
+                    snippet = '+ Attach ' + tpls.length + ' checklist(s)';
                     break;
                 }
                 default: {
@@ -796,7 +796,7 @@ const WFE = (() => {
                 const searchBox = document.createElement('input');
                 searchBox.type = 'text';
                 searchBox.className = 'form-input';
-                searchBox.placeholder = 'Search SOP checklists...';
+                searchBox.placeholder = 'Search checklists...';
                 searchBox.style.marginBottom = '6px';
                 searchBox.style.fontSize = '12px';
                 searchBox.style.padding = '5px 8px';

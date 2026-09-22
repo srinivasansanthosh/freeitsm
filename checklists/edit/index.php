@@ -146,7 +146,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
         <div class="ed-grid">
             <div class="ed-card">
                 <h2>Template</h2>
-                <p class="ed-sub">What this procedure is, and how analysts will find it.</p>
+                <p class="ed-sub">What this checklist is, and how analysts will find it.</p>
 
                 <div class="ed-field">
                     <label for="edName">Title</label>
@@ -177,12 +177,12 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
                 </div>
                 <div class="ed-field">
                     <label for="edDesc">Description</label>
-                    <textarea id="edDesc" class="ed-textarea" placeholder="When and why to use this procedure."></textarea>
+                    <textarea id="edDesc" class="ed-textarea" placeholder="When and why to use this checklist."></textarea>
                 </div>
                 <div class="ed-field" style="margin-bottom: 0;">
                     <label for="edKeywords">Keywords</label>
                     <input type="text" id="edKeywords" class="ed-input" placeholder="vpn, remote access, token">
-                    <span style="font-size: 11px; color: var(--text-muted, #64748b);">Comma separated. Used to suggest this procedure against a ticket's subject.</span>
+                    <span style="font-size: 11px; color: var(--text-muted, #64748b);">Comma separated. Used to suggest this checklist against a ticket's subject.</span>
                 </div>
             </div>
 
@@ -313,7 +313,7 @@ $categories   = $conn->query("SELECT name FROM checklist_categories ORDER BY nam
             const name = (steps[i].title || '').trim();
             const ok = await showConfirm({
                 title: 'Remove step',
-                message: name ? 'Remove "' + name + '" from this procedure?' : 'Remove this empty step?',
+                message: name ? 'Remove "' + name + '" from this checklist?' : 'Remove this empty step?',
                 okLabel: 'Remove', okClass: 'danger'
             });
             if (!ok) return;

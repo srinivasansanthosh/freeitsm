@@ -158,7 +158,7 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
     <div class="container">
         <div style="margin-bottom: 20px;">
             <h1 style="font-size: 22px; font-weight: 700; color: var(--text, #0f172a); margin: 0 0 6px 0;">Checklist settings</h1>
-            <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;">Manage the categories and suggested roles your SOP templates can use.</p>
+            <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;">Manage the categories and suggested roles your checklist templates can use.</p>
         </div>
 
         <div class="tab-bar">
@@ -173,7 +173,7 @@ if (!in_array($activeTab, ['categories', 'roles', 'layout'])) {
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                     <div>
                         <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: var(--text, #0f172a);">Categories</h3>
-                        <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b);">How SOP templates are grouped. A category is created automatically the first time a template uses it.</p>
+                        <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b);">How checklist templates are grouped. A category is created automatically the first time a template uses it.</p>
                     </div>
                     <button type="button" class="btn-teal" onclick="lkOpenAdd('category')">Add</button>
                 </div>

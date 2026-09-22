@@ -149,8 +149,8 @@ foreach ($templates as $t) {
         <main class="chk-main">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <div>
-                    <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0; color: var(--text, #0f172a);">Checklist and SOP templates</h1>
-                    <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;">Multi-use Standard Operating Procedures with task-level role assignments</p>
+                    <h1 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0; color: var(--text, #0f172a);">Checklist templates</h1>
+                    <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 0;">Standard checklist templates with task-level role assignments</p>
                 </div>
             </div>
 

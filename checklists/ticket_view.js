@@ -119,7 +119,7 @@ function renderChecklistToolbarButton(ticketId) {
 
     btn.innerHTML = `
         <span class="action-btn-icon">✅</span>
-        <span>SOP checklist${badgeText}</span>
+        <span>Checklist${badgeText}</span>
     `;
 }
 
@@ -139,7 +139,7 @@ function renderTicketChecklistsInline(ticketId) {
         host.innerHTML = `
             <div id="sopEmptyStateHost_${ticketId}" style="background: var(--surface, #ffffff); border: 1px dashed var(--border, #cbd5e1); border-radius: 6px; padding: 8px 14px; margin: -15px 0 12px 0; display: flex; justify-content: space-between; align-items: center;">
                 <div style="color: var(--text-muted, #64748b); font-size: 13px;">
-                    <strong>SOP checklist:</strong> None attached to this ticket.
+                    <strong>Checklist:</strong> None attached to this ticket.
                 </div>
                 <button type="button" class="chk-chip" onclick="openAttachChecklistModal(${ticketId})">
                     Attach
@@ -155,7 +155,7 @@ function renderTicketChecklistsInline(ticketId) {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 14px;">✅</span>
-                    <strong style="font-size: 13px; color: var(--text, #1e293b);">SOP next steps</strong>
+                    <strong style="font-size: 13px; color: var(--text, #1e293b);">Checklist next steps</strong>
                 </div>
                 <div style="display: flex; gap: 6px;">
                     <button type="button" class="chk-chip" onclick="openChecklistModal(${ticketId})" title="Pop out full checklist">
@@ -238,7 +238,7 @@ function openChecklistModal(ticketId) {
     if (!ticketChecklistsData || ticketChecklistsData.length === 0) {
         checklistsHtml = `
             <div style="text-align: center; padding: 30px; color: var(--text-muted, #64748b);">
-                <p style="margin-bottom: 12px;">No SOP checklists are attached to this ticket.</p>
+                <p style="margin-bottom: 12px;">No checklists are attached to this ticket.</p>
                 <button class="btn btn-primary" type="button" onclick="closeChecklistModal(); openAttachChecklistModal(${ticketId});">
                     Attach
                 </button>
@@ -305,7 +305,7 @@ function openChecklistModal(ticketId) {
             <div style="padding: 14px 18px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 18px;">✅</span>
-                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #1e293b);">SOP checklists for ticket #${ticketId}</h3>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #1e293b);">Checklists for ticket #${ticketId}</h3>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button type="button" class="chk-chip" onclick="openAttachChecklistModal(${ticketId})">
@@ -452,12 +452,12 @@ async function executeToggleItem(ticketId, itemId, completed, responseValue, che
 async function logStepNote(ticketId, checklistTitle, stepTitle, completed, responseValue) {
     let noteText = "";
     if (completed) {
-        noteText = `✅ SOP Step Completed: [${checklistTitle}] "${stepTitle}"`;
+        noteText = `✅ Checklist step completed: [${checklistTitle}] "${stepTitle}"`;
         if (responseValue) {
             noteText += ` — Response: ${responseValue}`;
         }
     } else {
-        noteText = `↩️ SOP Step Reopened: [${checklistTitle}] "${stepTitle}" was marked incomplete`;
+        noteText = `↩️ Checklist step reopened: [${checklistTitle}] "${stepTitle}" was marked incomplete`;
     }
 
     try {
@@ -513,7 +513,7 @@ async function removeTicketChecklist(ticketId, checklistId) {
     }
 }
 
-// 8. Attach SOP Modal
+// 8. Attach checklist Modal
 async function openAttachChecklistModal(ticketId) {
     if (!ticketId) ticketId = currentViewingTicketId;
     let modal = document.getElementById('ticketAttachChecklistModal');
@@ -540,10 +540,10 @@ async function openAttachChecklistModal(ticketId) {
     modal.innerHTML = `
         <div class="chk-attach-dialog" style="background: var(--surface, #ffffff); border-radius: 8px; width: 90%; max-width: 560px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid var(--border, #cbd5e1); color: var(--text, #1e293b);">
             <div style="padding: 14px 18px; border-bottom: 1px solid var(--border, #e2e8f0); display: flex; justify-content: space-between; align-items: center;">
-                <h4 style="margin: 0; font-size: 15px; font-weight: 600;">Attach a procedure</h4>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 600;">Attach checklist</h4>
             </div>
             <div style="padding: 12px 18px 6px 18px;">
-                <input type="text" id="chkSearchInput" onkeyup="filterTemplatesList(${ticketId})" placeholder="Search procedures..." style="width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border, #cbd5e1); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333);">
+                <input type="text" id="chkSearchInput" onkeyup="filterTemplatesList(${ticketId})" placeholder="Search checklists..." style="width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 13px; border: 1px solid var(--border, #cbd5e1); border-radius: 4px; background: var(--surface, #fff); color: var(--text, #333);">
             </div>
             <div id="chkTemplatesList" class="chk-attach-list" style="padding: 10px 18px; display: flex; flex-direction: column; gap: 8px;">
             </div>
@@ -587,7 +587,7 @@ function filterTemplatesList(ticketId) {
     });
 
     if (scored.length === 0) {
-        list.innerHTML = `<div style="text-align: center; color: var(--text-muted, #64748b); padding: 20px; font-size: 13px;">No matching SOP checklists found.</div>`;
+        list.innerHTML = `<div style="text-align: center; color: var(--text-muted, #64748b); padding: 20px; font-size: 13px;">No matching checklists found.</div>`;
         return;
     }
 
@@ -735,8 +735,8 @@ async function checkAndShowSopSuggestion(ticketId) {
             hostDiv.style.padding = '10px 14px';
 
             const matchLabel = list.length === 1 
-                ? '💡 Suggested SOP for this Ticket (Best match):' 
-                : `💡 Suggested SOPs for this Ticket (Top ${list.length} matches):`;
+                ? '💡 Suggested checklist for this ticket (Best match):' 
+                : `💡 Suggested checklists for this ticket (Top ${list.length} matches):`;
 
             let itemsHtml = '';
             list.forEach((s, idx) => {
@@ -781,7 +781,7 @@ async function checkAndShowSopSuggestion(ticketId) {
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <button type="button" class="chk-chip" onclick="openAttachChecklistModal(${ticketId})" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; border: 1px solid #99f6e4; background: #ffffff; color: #0f766e; font-weight: 500;">
-                                Browse All SOPs
+                                Browse all checklists
                             </button>
                             <button type="button" onclick="dismissSopSuggestion(${ticketId})" style="background: none; border: none; color: #0f766e; font-size: 12px; cursor: pointer; padding: 2px 4px; opacity: 0.8;" title="Dismiss suggestions">
                                 ✕ Dismiss
@@ -797,7 +797,7 @@ async function checkAndShowSopSuggestion(ticketId) {
         } else {
             hostDiv.innerHTML = `
                 <div style="color: var(--text-muted, #64748b); font-size: 13px;">
-                    <strong>SOP checklist:</strong> None attached to this ticket. <span style="font-style: italic; opacity: 0.85;">(No suggestions found)</span>
+                    <strong>Checklist:</strong> None attached to this ticket. <span style="font-style: italic; opacity: 0.85;">(No suggestions found)</span>
                 </div>
                 <button type="button" class="chk-chip" onclick="openAttachChecklistModal(${ticketId})">
                     Attach
@@ -818,7 +818,7 @@ function dismissSopSuggestion(ticketId) {
         hostDiv.style.padding = '8px 14px';
         hostDiv.innerHTML = `
             <div style="color: var(--text-muted, #64748b); font-size: 13px;">
-                <strong>SOP checklist:</strong> None attached to this ticket.
+                <strong>Checklist:</strong> None attached to this ticket.
             </div>
             <button type="button" class="chk-chip" onclick="openAttachChecklistModal(${ticketId})">
                 Attach

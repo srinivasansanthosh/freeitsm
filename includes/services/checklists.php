@@ -138,8 +138,8 @@ class ChecklistsService
                 if ($emptyMode === 'block') {
                     throw new ServiceError(
                         'validation',
-                        'no_sop_attached',
-                        'This ticket cannot be closed without at least one attached SOP or checklist.'
+                        'no_checklist_attached',
+                        'This ticket cannot be closed without at least one attached checklist.'
                     );
                 }
             }
@@ -172,7 +172,7 @@ class ChecklistsService
         throw new ServiceError(
             'validation',
             'mandatory_steps_outstanding',
-            'This ticket cannot be closed until mandatory SOP steps are complete: ' . $summary
+            'This ticket cannot be closed until mandatory checklist steps are complete: ' . $summary
         );
     }
 
@@ -186,7 +186,7 @@ class ChecklistsService
                     $who = $ctx->actorName !== '' ? $ctx->actorName : ('analyst #' . $ctx->actorId);
                     $via = $ctx->source === 'api' ? 'the API' : 'the web interface';
                     $by  = $ctx->source === 'workflow' ? 'Closed by a workflow.' : "Closed by {$who} via {$via}.";
-                    $note = "⚠️ Ticket closed without any attached SOP or procedure.\n{$by}";
+                    $note = "⚠️ Ticket closed without an attached checklist.\n{$by}";
                     try {
                         if ($ctx->actorId > 0) {
                             $conn->prepare(
@@ -214,7 +214,7 @@ class ChecklistsService
             fn($r) => '  • ' . $r['checklist'] . ' — ' . $r['step'],
             $outstanding
         ));
-        $note = "⚠️ Ticket closed with " . count($outstanding) . " mandatory SOP step(s) outstanding.\n"
+        $note = "⚠️ Ticket closed with " . count($outstanding) . " mandatory checklist step(s) outstanding.\n"
               . "{$by}\n\n{$list}";
 
         // An internal note, because that is where this module already writes its

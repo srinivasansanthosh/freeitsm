@@ -426,7 +426,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="checklists">
                 <h4>Checklists</h4>
-                <p class="module-desc">5 SOP templates with 29 steps — onboarding, offboarding, server decommissioning, VPN troubleshooting and a firewall change — plus their categories and suggested roles.</p>
+                <p class="module-desc">5 checklist templates with 29 steps — onboarding, offboarding, server decommissioning, VPN troubleshooting and a firewall change — plus their categories and suggested roles.</p>
                 <div class="module-footer">
                     <span class="record-count">~44 records</span>
                     <button class="import-btn" id="btn-checklists" onclick="importModule('checklists', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
