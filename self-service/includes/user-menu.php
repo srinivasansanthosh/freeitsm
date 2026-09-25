@@ -343,6 +343,12 @@ if (count($_um_parts) > 1) {
             <span><?php echo htmlspecialchars(t('self-service.menu.mfa')); ?></span>
             <span class="ss-mfa-badge disabled" id="ssMfaBadge"><?php echo htmlspecialchars(t('self-service.menu.mfa_off')); ?></span>
         </button>
+        <?php if (!empty(\$_SESSION['analyst_id'])): ?>
+        <a class="ss-menu-item" href="../index.php" style="text-decoration:none;color:inherit;display:flex;align-items:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            <span><?php echo htmlspecialchars(t('self-service.menu.analyst_console')); ?></span>
+        </a>
+        <?php endif; ?>
         <div class="ss-menu-divider"></div>
         <button class="ss-menu-item logout-item" onclick="ssConfirmLogout()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>

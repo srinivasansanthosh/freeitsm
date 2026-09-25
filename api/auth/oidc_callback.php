@@ -32,6 +32,40 @@ function ssoBail(string $msg): void {
     exit;
 }
 
+// --- Fallback confirmation from auth/sso_confirm_portal.php ---
+if (isset($_POST['action']) && $_POST['action'] === 'confirm_portal_proceed') {
+    $csrf = $_POST['csrf'] ?? '';
+    if (empty($csrf) || empty($_SESSION['sso_portal_csrf']) || !hash_equals($_SESSION['sso_portal_csrf'], $csrf)) {
+        ssoBail('Security check failed (CSRF mismatch). Please try signing in again.');
+    }
+    $pending = $_SESSION['sso_pending_portal'] ?? null;
+    unset($_SESSION['sso_pending_portal'], $_SESSION['sso_portal_csrf']);
+    if (!$pending || empty($pending['provider_id'])) {
+        ssoBail('Session expired. Please try signing in again.');
+    }
+    try {
+        $conn = connectToDatabase();
+        $st = $conn->prepare('SELECT * FROM auth_providers WHERE id = ? AND enabled = 1');
+        $st->execute([(int)$pending['provider_id']]);
+        $prov = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$prov) {
+            ssoBail('Sign-in provider is no longer available.');
+        }
+        completeSelfServiceSso(
+            $conn,
+            $prov,
+            (int)$pending['provider_id'],
+            (string)$pending['sub'],
+            (string)$pending['email'],
+            (bool)$pending['email_verified'],
+            (string)$pending['name'],
+            (array)$pending['tokens']
+        );
+    } catch (Exception $e) {
+        ssoBail('Sign-in failed: ' . $e->getMessage());
+    }
+}
+
 // Provider-side error (e.g. user cancelled).
 if (isset($_GET['error'])) {
     ssoBail('Sign-in was cancelled or failed: ' . htmlspecialchars($_GET['error_description'] ?? $_GET['error']));
@@ -144,15 +178,36 @@ try {
                 ssoBail('This account is not set up to sign in with this provider.');
             }
         } else {
-            // --- 3) Just-in-time provisioning (only if the provider allows it) ---
-            if ((int)$provider['auto_create_users'] !== 1) {
-                ssoBail('No FreeITSM account exists for ' . ($email ?: 'this user') . '. Ask an administrator to create one.');
+            // --- 3) Non-analyst routing: check if auto-create analysts is allowed ---
+            if (!empty($provider['auto_create_analysts'])) {
+                if ($email === '') {
+                    ssoBail('Cannot auto-create an account without an email from the provider.');
+                }
+                $analystId = oidcCreateAnalyst($conn, $providerId, $preferredUser, $name, $email, $provider['default_modules']);
+                $analyst   = oidcLoadAnalyst($conn, $analystId);
+            } else {
+                $fallbackMode = $provider['analyst_fallback_mode'] ?? 'confirm';
+                if ($fallbackMode === 'block') {
+                    ssoBail('No FreeITSM analyst account exists for ' . ($email ?: 'this user') . '. Ask an administrator to create one.');
+                } elseif ($fallbackMode === 'redirect') {
+                    completeSelfServiceSso($conn, $provider, $providerId, $sub, $email, $emailVerified, $name, $tokens);
+                } else {
+                    // 'confirm' (default): warn and prompt before switching to self-service portal
+                    if (empty($_SESSION['sso_portal_csrf'])) {
+                        $_SESSION['sso_portal_csrf'] = bin2hex(random_bytes(16));
+                    }
+                    $_SESSION['sso_pending_portal'] = [
+                        'provider_id'    => $providerId,
+                        'sub'            => $sub,
+                        'email'          => $email,
+                        'email_verified' => $emailVerified,
+                        'name'           => $name,
+                        'tokens'         => $tokens,
+                    ];
+                    header('Location: ' . BASE_URL . 'auth/sso_confirm_portal.php');
+                    exit;
+                }
             }
-            if ($email === '') {
-                ssoBail('Cannot auto-create an account without an email from the provider.');
-            }
-            $analystId = oidcCreateAnalyst($conn, $providerId, $preferredUser, $name, $email, $provider['default_modules']);
-            $analyst   = oidcLoadAnalyst($conn, $analystId);
         }
 
         // Link this IdP identity to the analyst for next time.

@@ -530,6 +530,19 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <input type="checkbox" id="fAutoCreate">
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_autocreate')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_autocreate_desc')); ?></span></div>
                 </div>
+                <div class="checkbox-field" id="autoCreateAnalystsField">
+                    <input type="checkbox" id="fAutoCreateAnalysts">
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_autocreate_analysts')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_autocreate_analysts_desc')); ?></span></div>
+                </div>
+                <div class="form-field" id="analystFallbackField">
+                    <label><?php echo htmlspecialchars(t('system.sso.field_fallback_mode')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_fallback_mode_hint')); ?></div>
+                    <select id="fAnalystFallbackMode" style="width:100%;padding:8px;border:1px solid var(--border,#ccc);border-radius:4px;background:var(--surface,#fff);color:var(--text,#333);">
+                        <option value="confirm"><?php echo htmlspecialchars(t('system.sso.fallback_mode_confirm')); ?></option>
+                        <option value="redirect"><?php echo htmlspecialchars(t('system.sso.fallback_mode_redirect')); ?></option>
+                        <option value="block"><?php echo htmlspecialchars(t('system.sso.fallback_mode_block')); ?></option>
+                    </select>
+                </div>
                 <!-- OIDC-only: LDAP has no email_verified claim to require. -->
                 <div class="checkbox-field" id="requireVerifiedField">
                     <input type="checkbox" id="fRequireVerified">
@@ -757,6 +770,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         // sign anybody in, so offering the toggle would promise something that
         // can never happen.
         $('autoCreateField').style.display = isCardDav ? 'none' : '';
+        $('autoCreateAnalystsField').style.display = isCardDav ? 'none' : '';
+        $('analystFallbackField').style.display = isCardDav ? 'none' : '';
         // "Default module access for auto-created users" describes the accounts
         // JIT sign-in creates. Nothing signs in through an address book, so
         // there are none — the field is meaningless rather than merely unused.
@@ -774,6 +789,16 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     }
     $('fProtocol').addEventListener('change', syncProtocolFields);
 
+    function syncAnalystFields() {
+        const cb = document.getElementById('fAutoCreateAnalysts');
+        const autoAnalyst = cb ? cb.checked : false;
+        const fallbackField = document.getElementById('analystFallbackField');
+        const defaultModulesField = document.getElementById('defaultModulesField');
+        if (fallbackField) fallbackField.style.display = autoAnalyst ? 'none' : 'block';
+        if (defaultModulesField) defaultModulesField.style.display = autoAnalyst ? 'block' : 'none';
+    }
+    const aca = document.getElementById('fAutoCreateAnalysts');
+    if (aca) aca.addEventListener('change', syncAnalystFields);
     function openModal(p) {
         document.getElementById('testResult').className = 'test-result';
         $('ldapTestResult').className = 'test-result';
@@ -839,6 +864,9 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         document.getElementById('fScopes').value = p ? (p.scopes || 'openid email profile') : 'openid email profile';
         document.getElementById('fEnabled').checked = p ? !!p.enabled : true;
         document.getElementById('fAutoCreate').checked = p ? !!p.auto_create_users : false;
+        document.getElementById('fAutoCreateAnalysts').checked = p ? !!p.auto_create_analysts : false;
+        syncAnalystFields();
+        document.getElementById('fAnalystFallbackMode').value = (p && p.analyst_fallback_mode) ? p.analyst_fallback_mode : 'confirm';
         document.getElementById('fRequireVerified').checked = p ? !!p.require_verified_email : false;
         document.getElementById('fDefaultModules').value = p ? (p.default_modules || '') : '';
         const tenantSel = document.getElementById('fTenant');
@@ -1058,6 +1086,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             scopes: document.getElementById('fScopes').value.trim(),
             enabled: document.getElementById('fEnabled').checked ? 1 : 0,
             auto_create_users: document.getElementById('fAutoCreate').checked ? 1 : 0,
+            auto_create_analysts: document.getElementById('fAutoCreateAnalysts').checked ? 1 : 0,
+            analyst_fallback_mode: document.getElementById('fAnalystFallbackMode').value || 'confirm',
             require_verified_email: document.getElementById('fRequireVerified').checked ? 1 : 0,
             default_modules: document.getElementById('fDefaultModules').value.trim(),
             tenant_id: (document.getElementById('fTenant') ? (document.getElementById('fTenant').value || null) : null)
