@@ -71,6 +71,9 @@ function entityLink(string $type, int $id): ?string {
         case 'asset':
             return 'asset-management/?asset_id=' . $id;
 
+        case 'asset_shipment':
+            return 'asset-management/logistics/';
+
         case 'cmdb_object':
             return 'cmdb/object.php?id=' . $id;
 
@@ -116,7 +119,7 @@ function entityLink(string $type, int $id): ?string {
 function entityLinkTypes(): array {
     return [
         'ticket', 'task', 'problem', 'change',
-        'asset', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
+        'asset', 'asset_shipment', 'cmdb_object', 'knowledge_article', 'contract', 'domain', 'project',
         'person', 'company', 'supplier', 'supplier_contact',
     ];
 }

@@ -1273,6 +1273,204 @@
                             }
                         ]
                     }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/asset-movements",
+                    "perm": "asset_logistics.create",
+                    "s": "Create an asset movement",
+                    "d": "Creates an outbound dispatch or staff-initiated inbound return, its default single shipment, and asset assignments. Assets must belong to one company. An inbound return recipient must currently have every selected asset assigned.",
+                    "section": "Assets",
+                    "slug": "post-asset-movements",
+                    "body": {
+                        "movement_type": "outbound_dispatch",
+                        "purpose_id": 1,
+                        "asset_ids": [
+                            42,
+                            43
+                        ],
+                        "cost_centre_id": 7,
+                        "recipient_user_id": 55,
+                        "notes": "Laptop dispatch or staff-initiated return batch"
+                    },
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 400,
+                                "slug": "invalid_parameter",
+                                "when": "Required fields are missing or malformed."
+                            },
+                            {
+                                "code": 404,
+                                "slug": "not_found",
+                                "when": "An asset is outside the API key company scope or cannot be found."
+                            },
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "Assets cannot be combined in this movement."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "GET",
+                    "p": "\/asset-movements\/{id}",
+                    "perm": "asset_logistics.read",
+                    "s": "Get an asset movement",
+                    "d": "Returns the movement, its shipments, asset assignments and recorded movement events. Company-scoped API keys can only read movements within their scope.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Movement id",
+                            "req": true
+                        }
+                    ],
+                    "section": "Assets",
+                    "slug": "get-asset-movements-id",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Get movement details",
+                                "note": "Includes the default shipment and movement history.",
+                                "path": {
+                                    "id": "12"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/asset-shipments\/{id}\/split",
+                    "perm": "asset_logistics.update",
+                    "s": "Split a shipment",
+                    "d": "Creates a second shipment from an existing draft movement shipment and moves the specified assets into it. Use this only when a movement needs multiple physical shipments.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Source shipment id",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "asset_ids": [
+                            43
+                        ]
+                    },
+                    "section": "Assets",
+                    "slug": "post-asset-shipments-id-split",
+                    "extras": {
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The movement or shipment is no longer eligible for splitting."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "POST",
+                    "p": "\/asset-shipments\/{id}\/replace",
+                    "perm": "asset_logistics.update",
+                    "s": "Create a replacement shipment",
+                    "d": "Creates a new pending shipment for a cancelled shipment in the same movement. The assets are moved to the replacement shipment, the old shipment remains in movement events, and tracking details are not copied.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Cancelled shipment id",
+                            "req": true
+                        }
+                    ],
+                    "body": {},
+                    "section": "Assets",
+                    "slug": "post-asset-shipments-id-replace",
+                    "extras": {
+                        "examples": [
+                            {
+                                "title": "Replace a cancelled shipment",
+                                "note": "Use after cancelling a shipment whose AWB or recipient needs to change. Set the replacement recipient before recording a new AWB.",
+                                "path": {"id": "42"},
+                                "body": {}
+                            }
+                        ],
+                        "errors": [
+                            {
+                                "code": 409,
+                                "slug": "conflict",
+                                "when": "The shipment is not cancelled, has no assets, or its movement is already completed."
+                            }
+                        ]
+                    }
+                },
+                {
+                    "m": "PATCH",
+                    "p": "\/asset-shipments\/{id}",
+                    "perm": "asset_logistics.update",
+                    "s": "Update shipment details",
+                    "d": "Updates supported carrier, tracking and shipment detail fields. Shipment state restrictions are enforced by the service.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Shipment id",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "fields": {
+                            "carrier_name": "DHL",
+                            "tracking_number": "123456789",
+                            "recipient_user_id": 55
+                        }
+                    },
+                    "section": "Assets",
+                    "slug": "patch-asset-shipments-id"
+                },
+                {
+                    "m": "POST",
+                    "p": "\/asset-shipments\/{id}\/transition",
+                    "perm": "asset_logistics.update",
+                    "s": "Advance shipment status",
+                    "d": "Advances a shipment through the supported logistics lifecycle and records the transition in movement history.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Shipment id",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "status": "dispatched",
+                        "notes": "Collected by courier"
+                    },
+                    "section": "Assets",
+                    "slug": "post-asset-shipments-id-transition"
+                },
+                {
+                    "m": "PUT",
+                    "p": "\/asset-shipments\/{id}\/cost-centre",
+                    "perm": "asset_logistics.update",
+                    "s": "Set shipment cost-centre override",
+                    "d": "Sets a shipment-specific cost-centre override. Pass null to clear the override and dynamically inherit the movement cost centre.",
+                    "params": [
+                        {
+                            "name": "id",
+                            "in": "path",
+                            "desc": "Shipment id",
+                            "req": true
+                        }
+                    ],
+                    "body": {
+                        "cost_centre_id": 7
+                    },
+                    "section": "Assets",
+                    "slug": "put-asset-shipments-id-cost-centre"
                 }
             ]
         },
@@ -1521,7 +1719,7 @@
                     "p": "\/assets\/{id}\/inventory",
                     "perm": "asset_inventory.create",
                     "s": "Report inventory from your own tool",
-                    "d": "Reports what an external tool (an RMM, Lansweeper, a CMDB export) saw on this asset: software, volumes (disks) and network adapters. The rows go into the same inventory every screen and report reads, tagged with your source, and no other source's rows are touched. The asset's own fields and last_seen (\"the agent reported\") never change. A source name belongs to one analyst per company - the first to write it - so a rotated key for the same analyst keeps it; built-in names (agent, intune, ...) are refused. (source, source_device_ref) links to one asset; naming it on another is a 409 naming the asset. Each section is judged on its own: complete = exactly this list for this source (an empty list removes all of them), partial = added and updated only, omitted = untouched; older than the newest applied = stale, same time and content = replayed, same time and different content = failed (observation_conflict). A section that fails is rolled back alone, named, and recorded as failed beside its last good data (GET .../inventory); the others apply (207). Send the same report again to retry the failed sections - the applied ones answer replayed. Each applied section reports added, updated and removed counts. A connections section (the assets physically connected to this one) also lists, as unmatched, any serial no asset has or several share - kept for review in Assets, never created.",
+                    "d": "Reports what an external tool (an RMM, Lansweeper, a CMDB export) saw on this asset: software, volumes (disks) and network adapters. The rows go into the same inventory every screen and report reads, tagged with your source, and no other source's rows are touched. The asset's own fields and last_seen (\"the agent reported\") never change. A source name belongs to one analyst per company - the first to write it - so a rotated key for the same analyst keeps it; built-in names (agent, intune, ...) are refused. (source, source_device_ref) links to one asset; naming it on another is a 409 naming the asset. Each section is judged on its own: complete = exactly this list for this source (an empty list removes all of them), partial = added and updated only, omitted = untouched; older than the newest applied = stale, same time and content = replayed, same time and different content = failed (observation_conflict). A section that fails is rolled back alone, named, and recorded as failed beside its last good data (GET ...\/inventory); the others apply (207). Send the same report again to retry the failed sections - the applied ones answer replayed. Each applied section reports added, updated and removed counts. A connections section (the assets physically connected to this one) also lists, as unmatched, any serial no asset has or several share - kept for review in Assets, never created.",
                     "params": [
                         {
                             "name": "id",
@@ -14307,7 +14505,7 @@
                 },
                 {
                     "title": "With custom fields",
-                    "note": "Custom fields are set by their key (Tickets \u2192 Settings \u2192 Custom fields). A field the type requires when a ticket is logged must be sent, or the call is refused with 422.",
+                    "note": "Custom fields are set by their key (Tickets → Settings → Custom fields). A field the type requires when a ticket is logged must be sent, or the call is refused with 422.",
                     "body": {
                         "subject": "New starter: Alex Morgan",
                         "requester_email": "hr@example.com",

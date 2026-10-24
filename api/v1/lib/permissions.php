@@ -65,6 +65,14 @@ function apiV1PermissionCatalog(): array {
                 'update' => 'Update asset fields (classification, lifecycle, hardware)',
             ],
         ],
+        'asset_logistics' => [
+            'label' => 'Asset dispatch & reverse logistics',
+            'actions' => [
+                'read' => 'View movements, shipments and their history',
+                'create' => 'Create asset movements and their default shipment',
+                'update' => 'Split shipments, update tracking, advance shipment status and override shipment cost centres',
+            ],
+        ],
         'asset_assignments' => [
             'label'   => 'Asset assignments',
             'actions' => [

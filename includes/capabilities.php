@@ -91,6 +91,7 @@ final class Cap
     const ASSETS_RECONCILIATION = 'assets.reconciliation';
     const ASSETS_TAGS           = 'assets.tags';
     const ASSETS_LABELS         = 'assets.labels';
+    const ASSETS_LOGISTICS     = 'assets.logistics';  // dispatch and reverse-logistics operations
 
     // ---- Contracts ---------------------------------------------------------
     const CONTRACTS_MANAGE             = 'contracts.manage';              // umbrella

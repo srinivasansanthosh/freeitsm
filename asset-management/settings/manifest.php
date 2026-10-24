@@ -190,4 +190,14 @@ return [
             'label_key' => 'common.left_panel.tab',
         ],
     ],
+
+    // Everyday asset operations, not a settings tab. This capability is explicitly
+    // grantable because logistics can change custody and shipment history.
+    'actions' => [
+        [
+            'cap'      => Cap::ASSETS_LOGISTICS,
+            'grant'    => 'Create and manage asset dispatches, returns and shipments',
+            'restrict' => null,
+        ],
+    ],
 ];

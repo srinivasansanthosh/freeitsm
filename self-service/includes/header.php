@@ -138,7 +138,11 @@ $portalNavCap = function (string $cap) use ($ss_user_id) {
                   WHERE ua.user_id = ? LIMIT 1"
             );
             $st->execute([(int)$ss_user_id]);
-            return (bool)$st->fetchColumn();
+            if ($st->fetchColumn()) return true;
+            // Pending outbound deliveries must remain visible before an asset is formally assigned.
+            $delivery = $conn->prepare("SELECT 1 FROM asset_shipments s JOIN asset_movements m ON m.id = s.movement_id WHERE s.recipient_user_id = ? AND m.movement_type IN ('outbound_dispatch','inbound_return') LIMIT 1");
+            $delivery->execute([(int)$ss_user_id]);
+            return (bool)$delivery->fetchColumn();
         } catch (Throwable $e) {
             return false;   // fails closed and quietly, like the training one
         }

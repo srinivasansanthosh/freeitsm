@@ -1177,6 +1177,59 @@ try {
         }
     }
 
+    // Asset logistics. Movements retain their history when an optional purpose,
+    // cost centre, status or actor is retired; shipment/asset associations cascade
+    // only with their owning movement/shipment. Asset deletion preserves snapshots.
+    $assetLogisticsFks = [
+        ['asset_movement_purposes',        'fk_amp_tenant',          'tenants',            'tenant_id',             'id', 'CASCADE'],
+        ['asset_movements',                'fk_am_tenant',           'tenants',            'tenant_id',             'id', 'SET NULL'],
+        ['asset_movements',                'fk_am_purpose',          'asset_movement_purposes','purpose_id',          'id', 'SET NULL'],
+        ['asset_movements',                'fk_am_cost_centre',      'cost_centres',       'cost_centre_id',        'id', 'SET NULL'],
+        ['asset_movements',                'fk_am_actor',            'analysts',           'created_by_analyst_id', 'id', 'SET NULL'],
+        ['asset_shipments',                'fk_as_movement',         'asset_movements',    'movement_id',           'id', 'CASCADE'],
+        ['asset_shipments',                'fk_as_cost_centre',      'cost_centres',       'cost_centre_id',        'id', 'SET NULL'],
+        ['asset_shipments',                'fk_as_actor',            'analysts',           'created_by_analyst_id', 'id', 'SET NULL'],
+        ['asset_movement_assets',          'fk_ama_movement',        'asset_movements',    'movement_id',           'id', 'CASCADE'],
+        ['asset_movement_assets',          'fk_ama_shipment',        'asset_shipments',    'shipment_id',           'id', 'CASCADE'],
+        ['asset_movement_assets',          'fk_ama_asset',           'assets',             'asset_id',              'id', 'SET NULL'],
+        ['asset_movement_events',          'fk_ame_movement',        'asset_movements',    'movement_id',           'id', 'CASCADE'],
+        ['asset_movement_events',          'fk_ame_shipment',        'asset_shipments',    'shipment_id',           'id', 'SET NULL'],
+        ['asset_movement_events',          'fk_ame_actor',           'analysts',           'actor_analyst_id',      'id', 'SET NULL'],
+        ['asset_logistics_policies',       'fk_alp_tenant',          'tenants',            'tenant_id',             'id', 'CASCADE'],
+        ['asset_logistics_policies',       'fk_alp_status',          'asset_status_types', 'post_receipt_status_id','id', 'SET NULL'],
+        ['asset_logistics_policies',       'fk_alp_actor',           'analysts',           'updated_by_analyst_id', 'id', 'SET NULL'],
+        ['asset_logistics_outcome_statuses','fk_alos_tenant',        'tenants',            'tenant_id',             'id', 'CASCADE'],
+        ['asset_logistics_outcome_statuses','fk_alos_status',        'asset_status_types', 'asset_status_id',       'id', 'CASCADE'],
+        ['asset_logistics_outcome_statuses','fk_alos_actor',         'analysts',           'updated_by_analyst_id', 'id', 'SET NULL'],
+    ];
+    foreach ($assetLogisticsFks as [$table, $name, $refTable, $col, $refCol, $onDelete]) {
+        if ($tableExists($table) && $tableExists($refTable) && !$fkExists($table, $name)) {
+            $action = $onDelete ? " ON DELETE {$onDelete}" : '';
+            try { $conn->exec("ALTER TABLE {$table} ADD CONSTRAINT {$name} FOREIGN KEY ({$col}) REFERENCES {$refTable} ({$refCol}){$action}"); } catch (Exception $e) {}
+        }
+    }
+
+    // Seed shared default purposes on existing installations too. Do not overwrite
+    // names or active flags: administrators may have edited the defaults already.
+    if ($tableExists('asset_movement_purposes')) {
+        $purposeSeeds = [
+            ['outbound_dispatch', 'Employee delivery', 'outbound_employee_delivery', 10],
+            ['outbound_dispatch', 'Repair or service', 'outbound_repair_service', 20],
+            ['outbound_dispatch', 'Transfer', 'outbound_transfer', 30],
+            ['outbound_dispatch', 'Loan or temporary issue', 'outbound_loan_temporary', 40],
+            ['inbound_return', 'Employee return', 'inbound_employee_return', 10],
+            ['inbound_return', 'Repair or service return', 'inbound_repair_service_return', 20],
+            ['inbound_return', 'Transfer', 'inbound_transfer', 30],
+            ['inbound_return', 'End of loan', 'inbound_end_of_loan', 40],
+        ];
+        $findPurpose = $conn->prepare("SELECT id FROM asset_movement_purposes WHERE default_key = ? LIMIT 1");
+        $addPurpose = $conn->prepare("INSERT INTO asset_movement_purposes (movement_type, name, default_key, display_order) VALUES (?, ?, ?, ?)");
+        foreach ($purposeSeeds as [$type, $name, $key, $order]) {
+            $findPurpose->execute([$key]);
+            if (!$findPurpose->fetchColumn()) $addPurpose->execute([$type, $name, $key, $order]);
+        }
+    }
+
     // RBAC Layer 2. Cascades keep the join tables clean: deleting a role, an
     // analyst or a team removes the assignments that pointed at it.
     if ($tableExists('rbac_role_capabilities') && $tableExists('rbac_roles')) {
