@@ -2001,7 +2001,7 @@ return [
 
     'asset_logistics_carriers' => [
         'id' => 'INT NOT NULL AUTO_INCREMENT',
-        'tenant_id' => 'INT NULL',
+        'tenant_id' => 'INT NOT NULL',
         'supplier_id' => 'INT NOT NULL',
         'is_default' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'tracking_url_template' => 'VARCHAR(1000) NULL',
