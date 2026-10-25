@@ -20,6 +20,7 @@ $embed = !empty($logisticsSettingsEmbed) || (isset($_GET['embed']) && $_GET['emb
 <!doctype html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?php echo htmlspecialchars(I18n::t('asset-management.logistics.settings_title')); ?></title>
+<?php endif; ?>
 <?php if (!$embed): ?><link rel="stylesheet" href="../../assets/css/theme.css?v=27"><link rel="stylesheet" href="../../assets/css/inbox.css?v=79"><?php endif; ?>
 
 <script>window.translations=Object.assign(window.translations||{},<?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_UNESCAPED_UNICODE); ?>);</script>
