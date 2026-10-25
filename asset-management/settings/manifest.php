@@ -159,7 +159,7 @@ return [
         [
             // Dedicated Logistics configuration, governed by the Logistics capability.
             'id'        => 'logistics-settings',
-            'cap'       => Cap::ASSETS_LOGISTICS,
+            'cap'       => Cap::ASSETS_MANAGE,
             'label'     => 'Logistics',
             'grant'     => 'Configure asset dispatch, return and shipment policies',
         ],
