@@ -45,7 +45,7 @@ try {
     $data = json_decode($raw, true);
     if (!is_array($data)) throw new ServiceError('bad_request', 'invalid_json', 'Request body must be a JSON object.');
     $action = (string)($data['action'] ?? '');
-    $configurationActions = ['list_carriers', 'get_configuration', 'save_purpose', 'reset_purpose_override', 'save_receipt_policy', 'save_outcome_status', 'save_carrier'];
+    $configurationActions = ['list_carriers', 'search_carrier_suppliers', 'get_configuration', 'save_purpose', 'reset_purpose_override', 'save_receipt_policy', 'save_outcome_status', 'save_carrier'];
     if (in_array($action, $configurationActions, true)) {
         if (!analystHasCapability($conn, (int) $_SESSION['analyst_id'], Cap::ASSETS_MANAGE)) {
             http_response_code(403);
@@ -60,6 +60,9 @@ try {
     switch ($action) {
         case 'list_carriers':
             echo json_encode(['success' => true] + AssetLogisticsService::listCarriers($conn, $ctx, (int)$tenantId));
+            break;
+        case 'search_carrier_suppliers':
+            echo json_encode(['success' => true] + AssetLogisticsService::searchCarrierSuppliers($conn, $ctx, (int)$tenantId, (string)($data['query'] ?? '')));
             break;
         case 'get_configuration':
             echo json_encode(['success' => true] + AssetLogisticsService::getConfiguration($conn, $ctx, (int)$tenantId));
