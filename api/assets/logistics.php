@@ -27,7 +27,7 @@ $ctx = ActorContext::fromSession($conn);
 try {
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     if ($method === 'GET') {
-        requireActionJson(Cap::ASSETS_LOGISTICS, $conn);
+        requireActionJson(in_array($action, $configurationActions, true) ? Cap::ASSETS_MANAGE : Cap::ASSETS_LOGISTICS, $conn);
         $movementId = filter_input(INPUT_GET, 'movement_id', FILTER_VALIDATE_INT);
         if (!$movementId || $movementId < 1) {
             throw new ServiceError('validation', 'missing_field', "'movement_id' is required.");
