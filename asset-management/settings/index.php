@@ -584,6 +584,32 @@ $translationNamespaces = ['common', 'asset-management'];
     <div class="container">
         <?php renderSettingsTabBar($visibleTabs, $activeTabId); ?>
 
+<script>
+/* Keep the Settings tab bar usable even if a feature-specific script fails to initialise. */
+document.addEventListener('click', function (event) {
+    const tab = event.target.closest('.tabs .tab[data-tab]');
+    if (!tab) return;
+
+    const id = tab.dataset.tab;
+    if (typeof window.switchTab === 'function') {
+        window.switchTab(id);
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+    }
+
+    document.querySelectorAll('.tabs .tab').forEach(button => {
+        button.classList.toggle('active', button === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(panel => {
+        panel.classList.toggle('active', panel.id === id + '-tab');
+    });
+    try {
+        history.replaceState(null, '', '?tab=' + encodeURIComponent(id));
+    } catch (e) {}
+}, true);
+</script>
+
         <!-- Left panel tab — per-analyst preference, so it declares no capability and is never gated -->
         <div class="tab-content<?php echo $activeTabId === 'left-panel' ? ' active' : ''; ?>" id="left-panel-tab" data-capability="none">
             <div class="section-header">
