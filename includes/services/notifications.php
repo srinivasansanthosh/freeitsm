@@ -128,6 +128,8 @@ class NotificationsService
     {
         return [
             // The ones people actually asked for.
+            'asset_logistics.issue_reported' => ['default' => true, 'entity' => 'asset_shipment'],
+            'asset_logistics.acknowledged' => ['default' => true, 'entity' => 'asset_shipment'],
             'ticket.assigned'         => ['default' => true,  'entity' => 'ticket'],
             /**
              * #1566 — a ticket lands in your team's queue.
@@ -462,16 +464,18 @@ class NotificationsService
     }
 
     /**
-     * Where a portal user's notification goes. Only tickets so far; the ticket
-     * page itself decides - through portalTicketAccess() - whether they may see
-     * it, so a stale notification can never be a way in.
+     * Where a portal user's notification goes. Tickets are checked by their page;
+     * shipment links open My Assets, which lists only shipments owned by the
+     * authenticated portal user, so a stale notification cannot grant access.
      *
-     * @param string $entityType  what the notification is about - only 'ticket' gets a link
-     * @param int $entityId  the ticket id
+     * @param string $entityType  the notification entity type
+     * @param int $entityId  the entity id
      */
     public static function portalLinkFor(string $entityType, int $entityId): ?string
     {
-        return $entityType === 'ticket' ? 'self-service/tickets.php?view=team&id=' . $entityId : null;
+        if ($entityType === 'ticket') return 'self-service/tickets.php?view=team&id=' . $entityId;
+        if ($entityType === 'asset_shipment') return 'self-service/my-equipment.php';
+        return null;
     }
 
     /**

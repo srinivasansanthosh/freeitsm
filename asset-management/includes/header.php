@@ -71,6 +71,12 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.servers') : 'Servers'); ?></span>
         </a>
+        <a href="<?php echo BASE_URL; ?>asset-management/logistics/" class="nav-btn <?php echo $current_page === 'logistics' ? 'active' : ''; ?>" title="Asset Logistics">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="3" width="15" height="13" rx="2"></rect><path d="M16 8h4l3 4v4h-7z"></path><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+            <span>Logistics</span>
+        </a>
         <a href="<?php echo BASE_URL; ?>asset-management/leases/" class="nav-btn <?php echo $current_page === 'leases' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.leases') : 'Leases'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>

@@ -88,6 +88,13 @@ return [
             'grant'     => 'Manage suppliers',
         ],
         [
+            // Dedicated Settings tab for dispatch and reverse-logistics configuration.
+            'id'        => 'logistics-settings',
+            'cap'       => Cap::ASSETS_MANAGE,
+            'label_key' => 'asset-management.logistics.settings_title',
+            'grant'     => 'Configure asset dispatch, return and shipment policies',
+        ],
+        [
             'id'           => 'warranty',
             'cap'          => Cap::ASSETS_WARRANTY,
             'label_key'    => 'asset-management.settings.tab_warranty',
@@ -188,6 +195,16 @@ return [
             'id'        => 'left-panel',
             'cap'       => null,
             'label_key' => 'common.left_panel.tab',
+        ],
+    ],
+
+    // Everyday asset operations, not a settings tab. This capability is explicitly
+    // grantable because logistics can change custody and shipment history.
+    'actions' => [
+        [
+            'cap'      => Cap::ASSETS_LOGISTICS,
+            'grant'    => 'Create and manage asset dispatches, returns and shipments',
+            'restrict' => null,
         ],
     ],
 ];

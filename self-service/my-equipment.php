@@ -72,7 +72,7 @@ $pageStyles = <<<'CSS'
    unambiguous rather than pretty: 0 against O and 1 against l is the whole job. */
 .eq-facts dd.mono { font-family: Consolas, "SF Mono", Menlo, monospace; font-size: 12.5px; }
 
-.eq-empty {
+.eq-movements{margin-top:30px}.eq-movements h2{font-size:19px;margin:0 0 6px}.eq-movement-card{background:var(--surface,#fff);border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:16px 18px;margin:12px 0}.eq-movement-card h3{font-size:15px;margin:0 0 10px}.eq-movement-card p{margin:7px 0}.eq-movement-card textarea{display:block;width:100%;min-height:65px;box-sizing:border-box;margin:6px 0 10px;padding:9px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:6px;font:inherit}.eq-movement-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.eq-movement-issue{background:var(--surface-2,var(--surface));padding:10px;border-radius:6px}.eq-empty {
     background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb);
     border-radius: 8px; padding: 28px; text-align: center;
     color: var(--text-muted, #666); font-size: 14px; line-height: 1.6;
@@ -91,10 +91,18 @@ require_once __DIR__ . '/includes/header.php';
                  something to say, and "you have no equipment" is only said once
                  it is known to be true. */ ?>
         <div id="eqList"></div>
+        <section id="asset-movements" class="eq-movements" aria-labelledby="assetMovementsTitle" hidden>
+            <h2 id="assetMovementsTitle"><?php echo htmlspecialchars(t('self-service.equipment.movements_title')); ?></h2>
+            <p class="eq-sub"><?php echo htmlspecialchars(t('self-service.equipment.movements_subtitle')); ?></p>
+            <div id="eqMovementList" aria-live="polite"></div>
+        </section>
     </div>
 <?php
 $pageScripts = <<<'JS'
 const eqEsc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); };
+const eqT = key => window.t('self-service.equipment.' + key);
+let eqHasAssets = false;
+let eqHasMovements = false;
 
 async function eqLoad() {
     try {
@@ -112,7 +120,8 @@ function eqEmpty(msg) {
 }
 
 function eqRender(rows) {
-    if (!rows.length) { eqEmpty(window.t('self-service.equipment.none')); return; }
+    eqHasAssets = rows.length > 0;
+    if (!rows.length) { document.getElementById('eqList').innerHTML = ''; return; }
 
     document.getElementById('eqList').innerHTML =
         '<div class="eq-grid">' + rows.map(function (a) {
@@ -141,7 +150,39 @@ function eqRender(rows) {
         }).join('') + '</div>';
 }
 
+async function eqLoadMovements(){
+    const root=document.getElementById('eqMovementList');
+    try{
+        const res=await fetch('../api/self-service/asset_deliveries.php',{credentials:'same-origin'}),data=await res.json();
+        if(!res.ok||!data.success)throw new Error(data.error||eqT('movements_load_failed'));
+        const rows=data.shipments||[];
+        const section=document.getElementById('asset-movements');
+        if(!rows.length){section.hidden=true;root.innerHTML='';eqHasMovements=false;if(!eqHasAssets)eqEmpty(window.t('self-service.equipment.none'));return;}
+        eqHasMovements=true;section.hidden=false;document.getElementById('eqList').innerHTML = eqHasAssets ? document.getElementById('eqList').innerHTML : '';
+        root.innerHTML=rows.map(function(s){
+            const isReturn=s.movement_type==='inbound_return';
+            const title=isReturn?eqT('return_title'):eqT('delivery_title');
+            const tracking=[s.carrier_name,s.tracking_number].filter(Boolean).join(' · ')||eqT('not_yet_available');
+            const collection=isReturn?(s.collection_method==='home_pickup'?eqT('home_pickup'):(s.collection_method==='drop_off'?eqT('drop_off'):eqT('not_yet_arranged'))):'';
+            const place=isReturn?(s.collection_method==='home_pickup'?s.pickup_address:(s.collection_method==='drop_off'?s.dropoff_location:'')):'';
+            const schedule=isReturn&&s.pickup_scheduled_at?'<p><strong>'+eqEsc(eqT('scheduled'))+':</strong> '+eqEsc(s.pickup_scheduled_at)+'</p>':'';
+            const instructions=isReturn&&s.return_instructions?'<p><strong>'+eqEsc(eqT('instructions'))+':</strong> '+eqEsc(s.return_instructions)+'</p>':'';
+            const returnArranged=(s.collection_method==='home_pickup'&&!!s.pickup_address)||(s.collection_method==='drop_off'&&!!s.dropoff_location);
+            const ack=isReturn?(s.return_acknowledged_at?'<p>'+eqEsc(eqT('return_acknowledged_on'))+' '+eqEsc(s.return_acknowledged_at)+'.</p>':(s.shipment_status!=='delivered'&&s.shipment_status!=='cancelled'&&returnArranged?'<button class="btn btn-secondary" data-return-ack="'+Number(s.shipment_id)+'">' + eqEsc(eqT('acknowledge_return')) + '</button>':(s.shipment_status!=='delivered'&&s.shipment_status!=='cancelled'?'<p>'+eqEsc(eqT('return_preparing'))+'</p>':''))):(s.recipient_acknowledged_at?'<p>'+eqEsc(eqT('receipt_acknowledged_on'))+' '+eqEsc(s.recipient_acknowledged_at)+'.</p>':(s.shipment_status==='delivered'?'<button class="btn btn-primary" data-delivery-ack="'+Number(s.shipment_id)+'">' + eqEsc(eqT('acknowledge_receipt')) + '</button>':''));
+            const issueValue=isReturn?s.return_issue:s.recipient_issue;
+            const issue=issueValue?'<p class="eq-movement-issue"><strong>'+eqEsc(eqT('issue_reported'))+':</strong> '+eqEsc(issueValue)+'</p>':'';
+            const canIssue=['pending','dispatched','in_transit','delivered','exception'].includes(s.shipment_status);
+            const issueForm=canIssue?'<form data-movement-issue="'+Number(s.shipment_id)+'" data-return="'+(isReturn?'1':'0')+'"><label><strong>'+eqEsc(eqT(isReturn?'report_return_issue':'report_delivery_issue'))+'</strong><textarea name="issue" maxlength="5000" required placeholder="'+eqEsc(eqT('issue_placeholder'))+'"></textarea></label><button class="btn btn-secondary" type="submit">'+eqEsc(eqT('submit_issue'))+'</button></form>':'';
+            return '<article class="eq-movement-card"><h3>'+eqEsc(title)+' #'+Number(s.shipment_id)+'</h3><p><strong>'+eqEsc(eqT('assets'))+':</strong> '+eqEsc(s.assets||'—')+'</p><p><strong>'+eqEsc(eqT('status'))+':</strong> '+eqEsc(s.shipment_status)+'</p><p><strong>'+eqEsc(eqT('purpose'))+':</strong> '+eqEsc(s.purpose_name||'—')+'</p><p><strong>'+eqEsc(eqT('carrier_tracking'))+':</strong> '+eqEsc(tracking)+'</p>'+(s.tracking_url?'<p><a href="'+escapeHtml(s.tracking_url)+'" target="_blank" rel="noopener noreferrer">'+eqEsc(eqT('track_shipment'))+'</a></p>':'')+(isReturn?'<p><strong>'+eqEsc(eqT('collection_method'))+':</strong> '+eqEsc(collection)+'</p>'+(place?'<p><strong>'+eqEsc(eqT('location_address'))+':</strong> '+eqEsc(place)+'</p>':'')+schedule+instructions:'')+ack+issue+issueForm+'</article>';
+        }).join('');
+        root.querySelectorAll('[data-delivery-ack]').forEach(b=>b.addEventListener('click',()=>eqMovementAction({action:'acknowledge',shipment_id:Number(b.dataset.deliveryAck)})));
+        root.querySelectorAll('[data-return-ack]').forEach(b=>b.addEventListener('click',()=>eqMovementAction({action:'return_acknowledge',shipment_id:Number(b.dataset.returnAck)})));
+        root.querySelectorAll('[data-movement-issue]').forEach(f=>f.addEventListener('submit',async e=>{e.preventDefault();const issue=new FormData(f).get('issue');await eqMovementAction({action:f.dataset.return==='1'?'report_return_issue':'report_issue',shipment_id:Number(f.dataset.movementIssue),issue});}));
+    }catch(e){root.innerHTML='<div class="eq-empty">'+eqEsc(e.message||eqT('movements_load_failed'))+'</div>';if(!eqHasAssets)document.getElementById('eqList').innerHTML='';}
+}
+async function eqMovementAction(payload){try{const res=await fetch('../api/self-service/asset_deliveries.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),data=await res.json();if(!res.ok||!data.success)throw new Error(data.error||eqT('action_failed'));await eqLoadMovements();}catch(e){alert(e.message||eqT('action_failed'));}}
 eqLoad();
+eqLoadMovements();
 JS;
 
 require_once __DIR__ . '/includes/footer.php';

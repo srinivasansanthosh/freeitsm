@@ -3002,12 +3002,177 @@ CREATE TABLE IF NOT EXISTS `asset_history` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- REST inventory (#194 Part B). The rows an external tool reports live in the
--- inventory tables themselves (source = 'rest:<source>'); these say who owns a
--- source name, which asset each of its devices is, and when each section was seen.
---
--- One analyst per (company, source name) - the integration's service account,
--- the first to write it. A rotated key acts as the same analyst.
+-- Asset dispatch and reverse logistics. A movement is the business operation;
+-- it has one shipment by default but can have several when the user explicitly
+-- splits it. asset_movement_assets assigns each asset in a movement to one shipment.
+CREATE TABLE IF NOT EXISTS `asset_movement_purposes` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `movement_type`     VARCHAR(30) NOT NULL,
+    `name`              VARCHAR(100) NOT NULL,
+    -- Stable identity for shipped defaults so renaming one does not reseed its old label.
+    `default_key`       VARCHAR(64) NULL,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    -- NULL = shared default purpose; a company may add its own purposes.
+    `tenant_id`         INT NULL,
+    `override_of_id`    INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_movement_purpose_override` (`tenant_id`, `override_of_id`),
+    UNIQUE KEY `uq_asset_movement_purpose_scope_name` (`tenant_id`, `movement_type`, `name`),
+    UNIQUE KEY `uq_asset_movement_purpose_default_key` (`default_key`),
+    KEY `ix_asset_movement_purposes_type_active` (`movement_type`, `is_active`, `display_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_movements` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `movement_type`         VARCHAR(30) NOT NULL,
+    `purpose_id`            INT NULL,
+    `tenant_id`             INT NULL,
+    `status`                VARCHAR(30) NOT NULL DEFAULT 'draft',
+    `cost_centre_id`        INT NULL,
+    `notes`                 TEXT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_asset_movements_tenant_status` (`tenant_id`, `status`, `created_datetime`),
+    KEY `ix_asset_movements_purpose` (`purpose_id`),
+    KEY `ix_asset_movements_cost_centre` (`cost_centre_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_shipments` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `movement_id`           INT NOT NULL,
+    `shipment_number`       INT NOT NULL DEFAULT 1,
+    `status`                VARCHAR(30) NOT NULL DEFAULT 'pending',
+    `carrier_name`          VARCHAR(150) NULL,
+    `carrier_supplier_id`   INT NULL,
+    `transport_mode`        VARCHAR(20) NOT NULL DEFAULT 'surface',
+    `tracking_number`       VARCHAR(150) NULL,
+    -- Optional self-service recipient for outbound delivery acknowledgement/issues.
+    `recipient_user_id`     INT NULL,
+    `recipient_acknowledged_at` DATETIME NULL,
+    `recipient_issue`       TEXT NULL,
+    `recipient_issue_at`    DATETIME NULL,
+    `return_acknowledged_at` DATETIME NULL,
+    `return_issue`           TEXT NULL,
+    `return_issue_at`        DATETIME NULL,
+    `collection_method`      VARCHAR(20) NULL,
+    `pickup_address`         TEXT NULL,
+    `pickup_scheduled_at`    DATETIME NULL,
+    `dropoff_location`       TEXT NULL,
+    `return_instructions`    TEXT NULL,
+    -- NULL means inherit from the movement; non-NULL is an explicit override.
+    `cost_centre_id`        INT NULL,
+    `notes`                 TEXT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_shipments_movement_number` (`movement_id`, `shipment_number`),
+    KEY `ix_asset_shipments_status` (`status`, `created_datetime`),
+    KEY `ix_asset_shipments_cost_centre` (`cost_centre_id`),
+    KEY `ix_asset_shipments_recipient` (`recipient_user_id`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_logistics_carriers` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `tenant_id` INT NOT NULL,
+    `supplier_id` INT NOT NULL,
+    `is_default` TINYINT(1) NOT NULL DEFAULT 0,
+    `tracking_url_template` VARCHAR(1000) NULL,
+    `tracking_url_air` VARCHAR(1000) NULL,
+    `tracking_url_surface` VARCHAR(1000) NULL,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `last_updated_by_analyst_id` INT NULL,
+    `updated_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_logistics_carrier_tenant_supplier` (`tenant_id`, `supplier_id`),
+    KEY `ix_asset_logistics_carrier_default` (`tenant_id`, `is_active`, `is_default`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_movement_assets` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `movement_id`           INT NOT NULL,
+    `shipment_id`           INT NOT NULL,
+    `asset_id`              INT NULL,
+    -- Snapshots preserve the record if an asset is later deleted.
+    `asset_tag_snapshot`    VARCHAR(64) NULL,
+    `hostname_snapshot`     VARCHAR(50) NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_movement_asset` (`movement_id`, `asset_id`),
+    KEY `ix_asset_movement_assets_shipment` (`shipment_id`),
+    KEY `ix_asset_movement_assets_asset` (`asset_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_movement_events` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `movement_id`           INT NOT NULL,
+    `shipment_id`           INT NULL,
+    `event_type`            VARCHAR(60) NOT NULL,
+    `old_value`             TEXT NULL,
+    `new_value`             TEXT NULL,
+    `notes`                 TEXT NULL,
+    `actor_analyst_id`      INT NULL,
+    `actor_name`            VARCHAR(150) NULL,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_asset_movement_events_movement` (`movement_id`, `created_datetime`),
+    KEY `ix_asset_movement_events_shipment` (`shipment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_logistics_policies` (
+    `id`                        INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`                 INT NULL,
+    `movement_type`              VARCHAR(30) NOT NULL,
+    `post_receipt_action`        VARCHAR(30) NOT NULL DEFAULT 'none',
+    `inspection_provider`        VARCHAR(30) NULL,
+    `close_movement_on_completion` TINYINT(1) NOT NULL DEFAULT 1,
+    `assign_to_recipient_on_ack` TINYINT(1) NOT NULL DEFAULT 1,
+    `update_asset_status_on_completion` TINYINT(1) NOT NULL DEFAULT 0,
+    `completion_asset_status_id` INT NULL,
+    `updated_by_analyst_id`      INT NULL,
+    `updated_datetime`           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_logistics_policy_scope_type` (`tenant_id`, `movement_type`),
+    KEY `ix_asset_logistics_policy_status` (`completion_asset_status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `asset_logistics_outcome_statuses` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`             INT NULL,
+    `outcome_code`          VARCHAR(40) NOT NULL,
+    `asset_status_id`       INT NOT NULL,
+    `updated_by_analyst_id` INT NULL,
+    `updated_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_asset_logistics_outcome_scope_code` (`tenant_id`, `outcome_code`),
+    KEY `ix_asset_logistics_outcome_status` (`asset_status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Standard purposes are shared defaults. Company-specific purposes can be added
+-- without changing these options for every other company. Stable default_key values
+-- ensure a renamed default is not re-created under its former name on later upgrades.
+INSERT INTO `asset_movement_purposes` (`movement_type`, `name`, `default_key`, `display_order`)
+SELECT seed.movement_type, seed.name, seed.default_key, seed.display_order
+FROM (
+    SELECT 'outbound_dispatch' AS movement_type, 'Employee delivery' AS name, 'outbound_employee_delivery' AS default_key, 10 AS display_order
+    UNION ALL SELECT 'outbound_dispatch', 'Repair or service', 'outbound_repair_service', 20
+    UNION ALL SELECT 'outbound_dispatch', 'Transfer', 'outbound_transfer', 30
+    UNION ALL SELECT 'outbound_dispatch', 'Loan or temporary issue', 'outbound_loan_temporary', 40
+    UNION ALL SELECT 'inbound_return', 'Employee return', 'inbound_employee_return', 10
+    UNION ALL SELECT 'inbound_return', 'Repair or service return', 'inbound_repair_service_return', 20
+    UNION ALL SELECT 'inbound_return', 'Transfer', 'inbound_transfer', 30
+    UNION ALL SELECT 'inbound_return', 'End of loan', 'inbound_end_of_loan', 40
+) AS seed
+WHERE NOT EXISTS (
+    SELECT 1 FROM `asset_movement_purposes` existing
+    WHERE existing.default_key = seed.default_key
+);
+
 CREATE TABLE IF NOT EXISTS `asset_inventory_source_owners` (
     `id`               INT NOT NULL AUTO_INCREMENT,
     `tenant_id`        INT NOT NULL,
