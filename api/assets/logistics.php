@@ -4,7 +4,7 @@
  * POST actions: create_movement, split_shipment, update_shipment, transition_shipment,
  * set_shipment_cost_centre, record_receipt_outcomes. GET with movement_id returns one tenant-scoped movement.
  */
-session_start(['read_and_close' => true]);
+session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
