@@ -10,7 +10,7 @@ require_once '../../includes/capabilities.php';
 I18n::initFromSession();
 requireModuleAccess('assets');
 $conn = connectToDatabase();
-requireCapability(Cap::ASSETS_MANAGE, $conn);
+requireCapability(Cap::ASSETS_LOGISTICS, $conn);
 $current_page = 'logistics';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'asset-management'];
