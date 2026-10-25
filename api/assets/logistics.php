@@ -46,7 +46,7 @@ try {
     if (!is_array($data)) throw new ServiceError('bad_request', 'invalid_json', 'Request body must be a JSON object.');
     $action = (string)($data['action'] ?? '');
     $configurationActions = ['list_carriers', 'get_configuration', 'save_purpose', 'save_receipt_policy', 'save_outcome_status', 'save_carrier'];
-    requireActionJson(Cap::ASSETS_LOGISTICS, $conn);
+    requireActionJson(in_array($action, $configurationActions, true) ? Cap::ASSETS_MANAGE : Cap::ASSETS_LOGISTICS, $conn);
     $tenantId = getActiveTenantId($conn, (int)$_SESSION['analyst_id']);
     if (!$tenantId) $tenantId = getDefaultTenantId($conn);
     switch ($action) {
