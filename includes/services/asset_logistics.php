@@ -1202,6 +1202,22 @@ class AssetLogisticsService
         return ['id' => (int)$conn->lastInsertId(), 'created' => true];
     }
 
+    /** Restore a shared purpose by removing its company override when unused. */
+    public static function resetPurposeOverride(PDO $conn, ActorContext $ctx, int $tenantId, array $in): array
+    {
+        self::assertTenantScope($ctx, $tenantId);
+        $id = (int)($in['id'] ?? 0);
+        if ($id < 1) throw new ServiceError('validation', 'invalid_purpose', 'Choose a company-specific purpose to restore.');
+        $st = $conn->prepare('SELECT id, override_of_id FROM asset_movement_purposes WHERE id = ? AND tenant_id = ? FOR UPDATE');
+        $st->execute([$id, $tenantId]);
+        $purpose = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$purpose || empty($purpose['override_of_id'])) throw new ServiceError('not_found', 'not_an_override', 'This purpose is not a company override.');
+        $used = $conn->prepare('SELECT 1 FROM asset_movements WHERE purpose_id = ? LIMIT 1');
+        $used->execute([$id]);
+        if ($used->fetchColumn()) throw new ServiceError('conflict', 'purpose_override_in_use', 'This purpose is used by existing movements, so it cannot be removed. Deactivate it instead to preserve movement history.');
+        $conn->prepare('DELETE FROM asset_movement_purposes WHERE id = ? AND tenant_id = ?')->execute([$id, $tenantId]);
+        return ['restored' => true, 'shared_purpose_id' => (int)$purpose['override_of_id']];
+    }
     /** Load receipt policies, configured statuses, and outcome mappings for settings. */
     public static function getConfiguration(PDO $conn, ActorContext $ctx, int $tenantId): array
     {
