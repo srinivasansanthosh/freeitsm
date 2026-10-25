@@ -994,7 +994,7 @@ document.addEventListener('click', function (event) {
 
         <?php if (settingsTabVisible($visibleTabs, 'logistics-settings')): ?>
         <!-- Logistics configuration is hosted by the module's configuration UI, inside the shared Settings tab. -->
-        <div class="tab-content<?php echo $activeTabId === 'logistics-settings' ? ' active' : ''; ?>" id="logistics-settings-tab" data-capability="<?php echo Cap::ASSETS_LOGISTICS; ?>">
+        <div class="tab-content<?php echo $activeTabId === 'logistics-settings' ? ' active' : ''; ?>" id="logistics-settings-tab" data-capability="<?php echo Cap::ASSETS_MANAGE; ?>">
             <?php
             // Render the configuration UI directly in this Settings tab; do not nest a second page in an iframe.
             // The included page detects this embedding context so it omits its duplicate header and document shell.
