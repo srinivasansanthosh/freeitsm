@@ -2589,6 +2589,9 @@ $translationNamespaces = ['common', 'asset-management'];
                 }
             } catch (e) {}
         }
+        // The tab bar uses inline handlers. Publish the switcher explicitly so
+        // it remains callable from those handlers regardless of script scope.
+        window.switchTab = switchTab;
 
         // --- Left panel preference ------------------------------------
         // 'always' vs 'hover', stored per-analyst via user_preferences.

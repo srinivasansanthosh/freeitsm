@@ -82,7 +82,7 @@ window.logisticsCostCentres = <?php echo json_encode($costCentres, JSON_HEX_TAG 
 <body>
 <?php include '../includes/header.php'; ?>
 <main class="lgx-wrap">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px"><div><h1 style="margin:0 0 4px"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.title')); ?></h1><div class="lgx-muted"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.dispatches_returns_tracking')); ?></div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-secondary" href="settings.php"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.settings_title')); ?></a><a class="btn btn-secondary" href="../index.php"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.back_to_assets')); ?></a></div></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px"><div><h1 style="margin:0 0 4px"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.title')); ?></h1><div class="lgx-muted"><?php echo htmlspecialchars(I18n::t('asset-management.logistics.dispatches_returns_tracking')); ?></div></div></div>
   <div class="lgx-grid">
     <section class="lgx-card"><h2><?php echo htmlspecialchars(I18n::t('asset-management.logistics.new_movement')); ?></h2>
       <form id="lgxCreate">
