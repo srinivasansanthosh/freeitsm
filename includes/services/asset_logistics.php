@@ -1243,11 +1243,22 @@ class AssetLogisticsService
                 s.is_active AS supplier_active, c.is_active AS carrier_active, c.is_default,
                 c.tracking_url_template, c.tracking_url_air, c.tracking_url_surface
             FROM suppliers s LEFT JOIN asset_logistics_carriers c ON c.supplier_id = s.id AND c.tenant_id = ?
-            WHERE s.is_active = 1 ORDER BY c.is_default DESC, name");
-        $carrierStmt->execute([$tenantId]);
+            WHERE s.is_active = 1 AND c.tenant_id = ? ORDER BY c.is_default DESC, name");
+        $carrierStmt->execute([$tenantId, $tenantId]);
         return ['purposes' => $purposes, 'policies' => array_values($policyMap), 'statuses' => $statuses->fetchAll(PDO::FETCH_ASSOC), 'outcome_statuses' => array_values($outcomeMap), 'carriers' => $carrierStmt->fetchAll(PDO::FETCH_ASSOC)];
     }
 
+    /** Search active suppliers for the carrier picker, excluding already configured carriers. */
+    public static function searchCarrierSuppliers(PDO $conn, ActorContext $ctx, int $tenantId, string $term): array
+    {
+        self::assertTenantScope($ctx, $tenantId);
+        $term = trim($term);
+        if (mb_strlen($term) < 2) return ['suppliers' => []];
+        $st = $conn->prepare("SELECT s.id, COALESCE(NULLIF(s.trading_name, ''), s.legal_name) AS name FROM suppliers s WHERE s.is_active = 1 AND (s.trading_name LIKE ? OR s.legal_name LIKE ?) AND NOT EXISTS (SELECT 1 FROM asset_logistics_carriers c WHERE c.tenant_id = ? AND c.supplier_id = s.id) ORDER BY name LIMIT 20");
+        $like = '%' . $term . '%';
+        $st->execute([$like, $like, $tenantId]);
+        return ['suppliers' => $st->fetchAll(PDO::FETCH_ASSOC)];
+    }
     /** Active carrier choices for shipment editors, scoped to the movement tenant. */
     public static function listCarriers(PDO $conn, ActorContext $ctx, int $tenantId): array
     {
