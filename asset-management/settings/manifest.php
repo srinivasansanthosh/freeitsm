@@ -156,13 +156,13 @@ return [
                                'asset_label_show_field_labels'],
         ],
         [
-        [
-            // Dedicated Logistics configuration, governed by the Logistics capability.
+            // Dedicated Logistics configuration, governed by the asset settings capability.
             'id'        => 'logistics-settings',
             'cap'       => Cap::ASSETS_MANAGE,
             'label'     => 'Logistics',
             'grant'     => 'Configure asset dispatch, return and shipment policies',
         ],
+        [
             'id'           => 'intune',
             'cap'          => Cap::ASSETS_INTUNE,
             'label_key'    => 'asset-management.settings.tab_intune',
